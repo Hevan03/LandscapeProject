@@ -1,0 +1,315 @@
+{
+  "info": {
+    "name": "Landscape Management Backend API",
+    "description": "Complete API collection for testing the Landscape Management backend server",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Check if the server is running and healthy"
+      }
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"testpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with username and password"
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "profile"]
+            },
+            "description": "Get user profile (requires authentication)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employee Services",
+      "item": [
+        {
+          "name": "Get Employee List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/RegisterEmployeeList",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "RegisterEmployeeList"]
+            },
+            "description": "Get all employees with status 'Open'"
+          }
+        },
+        {
+          "name": "Create Employee with CV",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "cv",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "Employee_Name",
+                  "value": "John Doe",
+                  "type": "text"
+                },
+                {
+                  "key": "Employee_Contact",
+                  "value": "1234567890",
+                  "type": "text"
+                },
+                {
+                  "key": "Employee_Type",
+                  "value": "landscaper",
+                  "type": "text"
+                },
+                {
+                  "key": "Employee_Description",
+                  "value": "Experienced landscaper",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees"]
+            },
+            "description": "Create new employee with CV upload"
+          }
+        },
+        {
+          "name": "Approve Employee",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/approve/:serviceNum",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "approve", ":serviceNum"],
+              "variable": [
+                {
+                  "key": "serviceNum",
+                  "value": "EMP001"
+                }
+              ]
+            },
+            "description": "Approve employee by service number"
+          }
+        },
+        {
+          "name": "Reject Employee",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/reject/:serviceNum",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "employees", "reject", ":serviceNum"],
+              "variable": [
+                {
+                  "key": "serviceNum",
+                  "value": "EMP001"
+                }
+              ]
+            },
+            "description": "Reject/delete employee by service number"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/:serviceNum",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", ":serviceNum"],
+              "variable": [
+                {
+                  "key": "serviceNum",
+                  "value": "EMP001"
+                }
+              ]
+            },
+            "description": "Get notifications for a specific service number"
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/read/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "read", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "notification_id"
+                }
+              ]
+            },
+            "description": "Mark a specific notification as read"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ratings",
+      "item": [
+        {
+          "name": "Get All Ratings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rating/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rating", "all"]
+            },
+            "description": "Get all user ratings ordered by rating"
+          }
+        },
+        {
+          "name": "Get Landscaper Grades",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/rating/landscapers/grades",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rating", "landscapers", "grades"]
+            },
+            "description": "Get landscaper grades/ratings"
+          }
+        },
+        {
+          "name": "Rate User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/rating/:userId/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "rating", ":userId", "rate"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "Rate a user (requires authentication)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Static Files",
+      "item": [
+        {
+          "name": "Access CV File",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/uploads/cv/cv-1755371455263-979754734.pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["uploads", "cv", "cv-1755371455263-979754734.pdf"]
+            },
+            "description": "Access uploaded CV files"
+          }
+        },
+        {
+          "name": "List Uploads Directory",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/uploads/",
+              "host": ["{{baseUrl}}"],
+              "path": ["uploads", ""]
+            },
+            "description": "Browse uploads directory"
+          }
+        }
+      ]
+    }
+  ]
+}
