@@ -1,0 +1,18 @@
+.custom-dots {
+  bottom: 15px;
+}
+
+.custom-dots li button:before {
+  color: white;
+  opacity: 0.5;
+}
+
+.custom-dots li.slick-active button:before {
+  color: white;
+  opacity: 1;
+}
+
+.project-slider .slick-prev,
+.project-slider .slick-next {
+  z-index: 10;
+}

@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add these styles to hide the default react-slick arrows.
+  This targets the pseudo-element that creates the default arrow text/icon
+  and makes it invisible, while keeping the clickable area.
+*/
+.slick-prev:before,
+.slick-next:before {
+  font-size: 0 !important; /* Hides the default characters */
+  display: none !important; /* Ensures they don't take up space */
+}
