@@ -58,6 +58,10 @@ const orderSchema = new mongoose.Schema(
       type: String,
       ref: "Payment",
     },
+    stockReserved: {
+      type: Boolean,
+      default: false,
+    },
     // Delivery assignment fields
     assignedDriver: {
       type: mongoose.Schema.Types.ObjectId,

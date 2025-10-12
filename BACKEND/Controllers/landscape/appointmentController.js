@@ -129,8 +129,27 @@ export async function updateAppointmentStatus(req, res) {
     return res.status(400).json({ message: "Invalid ID" });
   }
   try {
-    const updated = await AppointmentModel.findByIdAndUpdate(id, { status: status }, { new: true, runValidators: true });
+    const updated = await AppointmentModel.findByIdAndUpdate(id, { status: status }, { new: true, runValidators: true })
+      .populate("customer")
+      .populate("landscaper");
     if (!updated) return res.status(404).json({ message: "Appointment not found" });
+
+    // Send WhatsApp message if status is Confirmed
+    if (status === "Confirmed" && updated.customer && updated.customer.phone) {
+      try {
+        const { sendAppointmentConfirmation } = await import("../../utils/whatsappService.js");
+        await sendAppointmentConfirmation(
+          updated.customer.phone,
+          updated.customer.name,
+          updated.appointmentDate,
+          updated.timeSlot,
+          updated.siteAddress?.street || "",
+          updated.landscaper?.name || "Landscaper"
+        );
+      } catch (waErr) {
+        console.error("WhatsApp message error:", waErr);
+      }
+    }
     res.status(200).json({ message: "Status updated successfully", data: updated });
   } catch (error) {
     res.status(500).json({ message: "Failed to update status" });

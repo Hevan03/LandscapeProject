@@ -33,12 +33,37 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields: customerId, items, totalAmount" });
     }
 
+    // Reserve stock immediately by deducting inventory per item
+    const deducted = [];
+    try {
+      for (const it of items) {
+        const updated = await Item.findOneAndUpdate(
+          { _id: it.itemId, quantity: { $gte: it.quantity } },
+          { $inc: { quantity: -it.quantity } },
+          { new: true }
+        );
+        if (!updated) {
+          throw new Error(`Insufficient stock for item ${it.itemName || it.itemId}`);
+        }
+        deducted.push({ id: it.itemId, qty: it.quantity });
+      }
+    } catch (e) {
+      // rollback partial deductions
+      for (const d of deducted) {
+        try {
+          await Item.findByIdAndUpdate(d.id, { $inc: { quantity: d.qty } });
+        } catch {}
+      }
+      return res.status(409).json({ message: "Insufficient stock for one or more items", error: e.message });
+    }
+
     const orderData = {
       customerId,
       items,
       totalAmount,
       status: readyForAssignment ? "Paid" : "Pending",
       paymentStatus: readyForAssignment ? "paid" : "unpaid",
+      stockReserved: true,
     };
 
     const newOrder = new Order(orderData);
@@ -190,23 +215,21 @@ export const cancelOrderAndRestock = async (req, res) => {
       return res.status(400).json({ message: "Only pending orders can be cancelled" });
     }
 
-    // Restock each item quantity
-    for (const it of order.items) {
-      try {
-        await Item.findByIdAndUpdate(it.itemId, { $inc: { quantity: it.quantity } });
-      } catch (e) {
-        console.warn("Failed to restock item", it.itemId, e.message);
+    // Restock each item quantity only if stock was reserved earlier
+    if (order.stockReserved) {
+      for (const it of order.items) {
+        try {
+          await Item.findByIdAndUpdate(it.itemId, { $inc: { quantity: it.quantity } });
+        } catch (e) {
+          console.warn("Failed to restock item", it.itemId, e.message);
+        }
       }
     }
 
-    // Mark order as Cancelled and unpaid
-    order.status = "Pending"; // keep delivery pipeline consistent
-    order.paymentStatus = "unpaid";
-
-    // Optionally, delete the order entirely if business prefers
+    // Delete the order after restocking
     await Order.findByIdAndDelete(orderId);
 
-    return res.status(200).json({ message: "Order cancelled & items restocked." });
+    return res.status(200).json({ message: "Order cancelled & items restocked (if reserved)." });
   } catch (error) {
     console.error("Error cancelling order:", error);
     res.status(500).json({ message: "Failed to cancel order", error: error.message });

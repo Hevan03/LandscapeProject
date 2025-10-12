@@ -1,3 +1,35 @@
+/**
+ * Send WhatsApp message to customer when landscaper confirms appointment
+ * @param {string} phoneNumber - Customer's phone number
+ * @param {string} customerName - Customer's name
+ * @param {string|Date} appointmentDate - Appointment date
+ * @param {string} timeSlot - Time slot
+ * @param {string} siteAddress - Site address (street)
+ * @param {string} landscaperName - Landscaper's name
+ */
+export const sendAppointmentConfirmation = async (phoneNumber, customerName, appointmentDate, timeSlot, siteAddress, landscaperName) => {
+  try {
+    const client = getTwilioClient();
+    const toWhatsApp = `whatsapp:${phoneNumber.startsWith("+") ? phoneNumber : "+" + phoneNumber}`;
+    const formattedDate = typeof appointmentDate === "string" ? new Date(appointmentDate).toLocaleDateString() : appointmentDate.toLocaleDateString();
+    const message = `🌿 *Appointment Confirmed!* 🌿\n\nDear ${customerName},\n\nYour landscaping appointment has been *confirmed* by ${landscaperName}.\n\n📅 *Date:* ${formattedDate}\n⏰ *Time Slot:* ${timeSlot}\n📍 *Site Address:* ${siteAddress}\n\nThank you for choosing LeafSphere! We look forward to serving you.\n\nIf you have any questions, reply to this message.\n\nBest regards,\nLeafSphere Team`;
+    if (!client) {
+      console.log("WHATSAPP MESSAGE (Appointment Confirmation) would be sent to:", toWhatsApp);
+      console.log("MESSAGE CONTENT:", message);
+      return { success: true, messageSid: "simulated-message-id", simulated: true };
+    }
+    const response = await client.messages.create({
+      body: message,
+      from: fromWhatsApp,
+      to: toWhatsApp,
+    });
+    console.log("Appointment confirmation WhatsApp message sent successfully:", response.sid);
+    return { success: true, messageSid: response.sid };
+  } catch (error) {
+    console.error("Error sending appointment confirmation WhatsApp message:", error);
+    return { success: false, error: error.message };
+  }
+};
 import twilio from "twilio";
 
 // Initialize Twilio client only when needed

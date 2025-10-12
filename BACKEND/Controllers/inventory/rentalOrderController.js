@@ -5,7 +5,7 @@ import Machinery from "../../Models/inventory/machineryModel.js";
 // Create rental order
 export const createRentalOrder = async (req, res) => {
   try {
-    const { machineId, customerId, quantity, duration, totalPrice } = req.body;
+    const { machineId, customerId, quantity, duration, totalPrice, penaltyPerDay } = req.body;
 
     if (!customerId) {
       return res.status(400).json({ error: "Customer ID is required" });
@@ -18,6 +18,12 @@ export const createRentalOrder = async (req, res) => {
       return res.status(400).json({ error: "Not enough stock available" });
     }
 
+    // derive penalty if not provided or validate if provided
+    const penalty = typeof penaltyPerDay === "number" ? penaltyPerDay : machine.penaltyPerDay || 0;
+    if (penalty < 0) {
+      return res.status(400).json({ error: "Penalty per day cannot be negative" });
+    }
+
     // Reduce available stock
     machine.quantity -= quantity;
     await machine.save();
@@ -27,15 +33,14 @@ export const createRentalOrder = async (req, res) => {
       customerId, // 👈 include customer
       quantity,
       duration,
+      penaltyPerDay: penalty,
       totalPrice,
     });
 
     await rentalOrder.save();
     res.status(201).json(rentalOrder);
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Failed to create rental order", details: err.message });
+    res.status(500).json({ error: "Failed to create rental order", details: err.message });
   }
 };
 
@@ -46,15 +51,11 @@ export const getAllRentalOrders = async (req, res) => {
     let query = {};
     if (customerId) query.customerId = customerId;
 
-    const orders = await RentalOrder.find(query)
-      .populate("machine")
-      .populate("customerId");
+    const orders = await RentalOrder.find(query).populate("machine").populate("customerId");
 
     res.status(200).json(orders);
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Failed to fetch rental orders", details: err.message });
+    res.status(500).json({ error: "Failed to fetch rental orders", details: err.message });
   }
 };
 
@@ -63,23 +64,15 @@ export const deleteRentalOrder = async (req, res) => {
   const { orderId } = req.params;
 
   try {
-    const order = await RentalOrder.findByIdAndDelete(orderId).populate(
-      "machine"
-    );
+    const order = await RentalOrder.findByIdAndDelete(orderId).populate("machine");
     if (!order) {
       return res.status(404).json({ message: "Rental order not found." });
     }
 
     // Refund machine stock
-    await Machinery.findByIdAndUpdate(
-      order.machine,
-      { $inc: { quantity: order.quantity } },
-      { new: true }
-    );
+    await Machinery.findByIdAndUpdate(order.machine, { $inc: { quantity: order.quantity } }, { new: true });
 
-    res
-      .status(200)
-      .json({ message: "Rental order cancelled & refunded.", order });
+    res.status(200).json({ message: "Rental order cancelled & refunded.", order });
   } catch (err) {
     console.error("Error cancelling rental order:", err);
     res.status(500).json({ message: "Internal server error" });
@@ -96,11 +89,7 @@ export const updateRentalOrderStatus = async (req, res) => {
   }
 
   try {
-    const order = await RentalOrder.findByIdAndUpdate(
-      orderId,
-      { status },
-      { new: true }
-    ).populate("machine customerId");
+    const order = await RentalOrder.findByIdAndUpdate(orderId, { status }, { new: true }).populate("machine customerId");
 
     if (!order) return res.status(404).json({ message: "Order not found" });
 

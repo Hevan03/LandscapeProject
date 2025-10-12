@@ -1,5 +1,6 @@
 import Payment from "../../Models/payment/paymentModel.js";
 import Order from "../../Models/payment/orderModel.js";
+import Item from "../../Models/inventory/itemModel.js";
 import Notification from "../../Models/landscape/notificationModel.js";
 import AppointmentModel from "../../Models/landscape/appointmentModel.js";
 import Stripe from "stripe";
@@ -69,9 +70,44 @@ export const updatePayment = async (req, res) => {
     if (status === "completed" || status === "failed" || status === "cancelled") {
       const order = await Order.findById(payment.orderId);
       if (order) {
+        const wasPaidBefore = order.paymentStatus === "paid";
         if (status === "completed") {
           order.paymentStatus = "paid";
           order.status = "Paid";
+          // Deduct inventory only on transition to paid (avoid double-deduction)
+          if (!wasPaidBefore) {
+            // If stock already reserved at order creation, skip deduction here
+            if (order.stockReserved) {
+              await order.save();
+              return res.status(200).json(payment);
+            }
+            const deductedIds = [];
+            try {
+              for (const it of order.items) {
+                const updated = await Item.findOneAndUpdate(
+                  { _id: it.itemId, quantity: { $gte: it.quantity } },
+                  { $inc: { quantity: -it.quantity } },
+                  { new: true }
+                );
+                if (!updated) {
+                  throw new Error(`Insufficient stock for item ${it.itemName || it.itemId}`);
+                }
+                deductedIds.push({ id: it.itemId, qty: it.quantity });
+              }
+            } catch (e) {
+              // rollback any partial deductions
+              for (const d of deductedIds) {
+                try {
+                  await Item.findByIdAndUpdate(d.id, { $inc: { quantity: d.qty } });
+                } catch {}
+              }
+              // revert payment status change on order
+              order.paymentStatus = "unpaid";
+              order.status = "Pending";
+              await order.save();
+              return res.status(409).json({ message: "Inventory deduction failed", error: e.message });
+            }
+          }
         } else {
           order.paymentStatus = "unpaid";
         }
@@ -285,15 +321,48 @@ export const confirmPayment = async (req, res) => {
         return res.status(404).json({ message: "Order not found" });
       }
 
-      // Do not auto-approve; mark as pending verification
-      order.paymentStatus = "pending_verification";
       payment.amount = order.totalAmount || 0;
 
-      await order.save();
+      // For Stripe, consider payment confirmed -> complete and deduct inventory now
+      if (paymentMethod === "Stripe") {
+        const alreadyPaid = order.paymentStatus === "paid";
+        if (!alreadyPaid) {
+          const deducted = [];
+          try {
+            for (const it of order.items) {
+              const updated = await Item.findOneAndUpdate(
+                { _id: it.itemId, quantity: { $gte: it.quantity } },
+                { $inc: { quantity: -it.quantity } },
+                { new: true }
+              );
+              if (!updated) {
+                throw new Error(`Insufficient stock for item ${it.itemName || it.itemId}`);
+              }
+              deducted.push({ id: it.itemId, qty: it.quantity });
+            }
+          } catch (e) {
+            // rollback partial deductions
+            for (const d of deducted) {
+              try {
+                await Item.findByIdAndUpdate(d.id, { $inc: { quantity: d.qty } });
+              } catch {}
+            }
+            return res.status(409).json({ message: "Inventory deduction failed", error: e.message });
+          }
+        }
+
+        order.paymentStatus = "paid";
+        order.status = "Paid";
+        await order.save();
+        payment.status = "completed";
+      } else {
+        // Non-Stripe (e.g., BankSlip): keep pending for admin verification
+        order.paymentStatus = "pending_verification";
+        await order.save();
+        payment.status = "pending";
+      }
     }
 
-    // Ensure payment remains pending until admin review
-    payment.status = "pending";
     await payment.save();
 
     // Notify admin that verification is required
@@ -310,7 +379,10 @@ export const confirmPayment = async (req, res) => {
     }
 
     res.status(200).json({
-      message: "Payment submitted successfully and is pending verification",
+      message:
+        orderType === "order" && paymentMethod === "Stripe"
+          ? "Payment completed successfully"
+          : "Payment submitted successfully and is pending verification",
       paymentId: payment._id,
     });
   } catch (error) {
