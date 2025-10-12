@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { getCart, updateCartItemQuantity, removeCartItem } from "../../api/cartApi";
+import { getAllItems } from "../../api/itemApi";
 import { createOrder } from "../../api/orderApi";
 import AuthContext from "../../context/AuthContext";
 
@@ -9,18 +10,42 @@ const Cart = () => {
   const auth = useContext(AuthContext);
   const customerId = auth?.user?._id || auth?.user?.id;
   const [cartItems, setCartItems] = useState([]);
+  const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchCartItems();
+    const fetchAll = async () => {
+      await fetchInventory();
+      await fetchCartItems();
+    };
+    fetchAll();
   }, []);
+  const fetchInventory = async () => {
+    try {
+      const response = await getAllItems();
+      // Some callers use response.data (array), others use data.items; support both
+      const items = response?.data?.items || response?.data || [];
+      setInventory(items);
+    } catch (err) {
+      setInventory([]);
+    }
+  };
 
   const fetchCartItems = async () => {
     try {
       setLoading(true);
       const response = await getCart(customerId);
-      setCartItems(response.data.items || []);
+      const cart = response.data.items || [];
+      // Merge inventory level into cart items
+      const merged = cart.map((item) => {
+        const inv = inventory.find((invItem) => invItem._id === item.itemId);
+        return {
+          ...item,
+          inventoryLevel: inv ? inv.quantity : 0,
+        };
+      });
+      setCartItems(merged);
     } catch (err) {
       console.error("Error fetching cart:", err);
       setCartItems([]);
@@ -30,7 +55,17 @@ const Cart = () => {
   };
 
   const handleUpdateQuantity = async (itemId, newQuantity) => {
+    // Find the item in cart to check inventory
+    const item = cartItems.find((i) => i.itemId === itemId);
     if (newQuantity < 1) return;
+    if (item) {
+      const stock = Number.isFinite(item.inventoryLevel) ? item.inventoryLevel : Infinity;
+      const isIncrease = newQuantity > item.quantity;
+      if (isIncrease && newQuantity > stock) {
+        toast.error(`Requested quantity (${newQuantity}) exceeds available inventory (${Number.isFinite(stock) ? stock : 0}).`);
+        return;
+      }
+    }
     try {
       await updateCartItemQuantity(itemId, newQuantity, customerId);
       await fetchCartItems();
@@ -207,8 +242,11 @@ const Cart = () => {
                           <span className="px-4 py-1 font-medium text-gray-800">{item.quantity}</span>
                           <button
                             onClick={() => handleUpdateQuantity(item.itemId, item.quantity + 1)}
-                            className="px-3 py-1 bg-gray-100 text-gray-600 hover:bg-gray-200 focus:outline-none transition-colors"
+                            className={`px-3 py-1 bg-gray-100 text-gray-600 hover:bg-gray-200 focus:outline-none transition-colors${
+                              item.quantity >= item.inventoryLevel ? " cursor-not-allowed opacity-50" : ""
+                            }`}
                             aria-label="Increase quantity"
+                            disabled={item.quantity >= item.inventoryLevel}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

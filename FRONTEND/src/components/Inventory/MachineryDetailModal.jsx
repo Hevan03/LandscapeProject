@@ -42,6 +42,11 @@ const MachineryDetailModal = ({ machine, onClose }) => {
   };
 
   const handleProceedToPayment = async () => {
+    // Validate quantity does not exceed inventory
+    if (quantity > machine.quantity) {
+      showErrorMessage(`Requested quantity (${quantity}) exceeds available inventory (${machine.quantity}).`);
+      return;
+    }
     try {
       // Require login before creating a rental order
       if (!customerId) {
