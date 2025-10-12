@@ -9,6 +9,9 @@ const MachineryDetailModal = ({ machine, onClose }) => {
   const [totalPrice, setTotalPrice] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [penaltyPerDay, setPenaltyPerDay] = useState(
+    typeof machine.penaltyPerDay === "number" && machine.penaltyPerDay >= 0 ? machine.penaltyPerDay : 0
+  );
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
   const customerId = auth?.user?.id || auth?.user?._id || auth?.user?.customerId;
@@ -47,6 +50,11 @@ const MachineryDetailModal = ({ machine, onClose }) => {
       showErrorMessage(`Requested quantity (${quantity}) exceeds available inventory (${machine.quantity}).`);
       return;
     }
+    // Validate penalty per day
+    if (typeof penaltyPerDay !== "number" || isNaN(penaltyPerDay) || penaltyPerDay < 0) {
+      showErrorMessage("Penalty per day must be a valid number greater than or equal to 0.");
+      return;
+    }
     try {
       // Require login before creating a rental order
       if (!customerId) {
@@ -64,6 +72,7 @@ const MachineryDetailModal = ({ machine, onClose }) => {
           customerId,
           quantity,
           duration,
+          penaltyPerDay,
           totalPrice,
         }),
       });
@@ -268,14 +277,14 @@ const MachineryDetailModal = ({ machine, onClose }) => {
                   </svg>
                   <h4 className="text-sm font-medium text-red-700 dark:text-red-300">Late Return Penalty</h4>
                 </div>
-                <p className="mt-1 text-lg font-semibold text-red-800 dark:text-red-200">Rs. {machine.penaltyPerDay.toLocaleString()} / Day</p>
+                <p className="mt-1 text-lg font-semibold text-red-800 dark:text-red-200">Rs. {penaltyPerDay.toLocaleString()} / Day</p>
               </div>
             </div>
 
             {/* Rental Options */}
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-5 mb-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Rental Options</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Quantity
@@ -345,6 +354,21 @@ const MachineryDetailModal = ({ machine, onClose }) => {
                     </div>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Minimum: {machine.defaultDurationDays} days</p>
+                </div>
+
+                <div>
+                  <label htmlFor="penalty" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Penalty Per Day (Rs.)
+                  </label>
+                  <input
+                    type="number"
+                    id="penalty"
+                    value={penaltyPerDay}
+                    min={0}
+                    onChange={(e) => setPenaltyPerDay(Math.max(0, Number(e.target.value)))}
+                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-green-500"
+                  />
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Late return charge per additional day.</p>
                 </div>
               </div>
             </div>
