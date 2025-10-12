@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
 import { motion } from "framer-motion";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import AuthContext from "../../context/AuthContext";
@@ -236,7 +236,6 @@ const RatingsPage = () => {
         throw new Error("Failed to fetch users");
       }
       const data = await response.json();
-      console.log("Fetched users data:", data);
 
       setAllUsers({
         employees: Array.isArray(data.employees) ? data.employees : [],
@@ -252,8 +251,6 @@ const RatingsPage = () => {
         ...(Array.isArray(data.landscapers) ? data.landscapers : []).map((user) => ({ ...user, type: "landscapers" })),
         ...(Array.isArray(data.maintenance) ? data.maintenance : []).map((user) => ({ ...user, type: "maintenance" })),
       ];
-
-      console.log("All users data:", combined);
 
       setFilteredUsers(combined);
     } catch (error) {

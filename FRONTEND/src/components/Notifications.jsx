@@ -28,7 +28,7 @@ const Notifications = () => {
   const handleMarkAsRead = async (notificationId) => {
     try {
       await markNotificationAsRead(notificationId);
-      console.log("Notification marked as read:", notificationId);
+
       setNotifications((prev) => prev.map((n) => (n._id === notificationId ? { ...n, isRead: true } : n)));
     } catch (error) {
       console.error("Failed to mark notification as read:", error);

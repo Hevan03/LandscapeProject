@@ -69,11 +69,7 @@ const AdminDash = () => {
     { name: "Delivered", value: completedOrdersCount, color: "#4CAF50" },
   ];
 
-  // Dummy data for the Payments Summary chart
-  const paymentsData = [
-    { name: "Completed", value: 75, color: "#4CAF50" },
-    { name: "Pending", value: 25, color: "#8BC34A" },
-  ];
+  // Payments Summary chart was removed in a previous cleanup; state not required here
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-20">
@@ -385,13 +381,13 @@ const AdminDash = () => {
                             fill="#8884d8"
                             dataKey="value"
                             labelLine={false}
-                            label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                           >
                             {deliveryData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                           </Pie>
-                          <Tooltip formatter={(value, name) => [`${value} Orders`, name]} />
+                          <Tooltip formatter={(value) => [`${value} Orders`, ""]} />
                           <Legend verticalAlign="bottom" height={36} />
                         </PieChart>
                       </ResponsiveContainer>

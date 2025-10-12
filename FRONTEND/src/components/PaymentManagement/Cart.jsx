@@ -34,14 +34,18 @@ const Cart = () => {
     try {
       await updateCartItemQuantity(itemId, newQuantity, customerId);
       await fetchCartItems();
-    } catch (err) {}
+    } catch (err) {
+      console.error("Failed to update cart item quantity", err);
+    }
   };
 
   const handleRemoveItem = async (itemId) => {
     try {
       await removeCartItem(itemId, customerId);
       await fetchCartItems();
-    } catch (err) {}
+    } catch (err) {
+      console.error("Failed to remove cart item", err);
+    }
   };
 
   const handleCheckout = async () => {

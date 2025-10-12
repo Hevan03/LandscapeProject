@@ -85,24 +85,7 @@ const MachineryDetailModal = ({ machine, onClose }) => {
     }
   };
 
-  const showSuccessMessage = (message) => {
-    const successElement = document.createElement("div");
-    successElement.className =
-      "fixed top-5 right-5 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-md z-50 animate-fadeIn";
-    successElement.innerHTML = `
-      <div class="flex items-center">
-        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        <span>${message}</span>
-      </div>
-    `;
-    document.body.appendChild(successElement);
-    setTimeout(() => {
-      successElement.classList.add("animate-fadeOut");
-      setTimeout(() => document.body.removeChild(successElement), 500);
-    }, 3000);
-  };
+  // success toast helper removed (unused)
 
   const showErrorMessage = (message) => {
     const errorElement = document.createElement("div");

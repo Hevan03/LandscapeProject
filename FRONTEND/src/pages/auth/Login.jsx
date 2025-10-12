@@ -1,32 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { UserIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, BriefcaseIcon, TruckIcon, UserGroupIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { UserIcon, LockClosedIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import Cookies from "js-cookie";
-
-const USER_TYPES = [
-  {
-    value: "customer",
-    label: "Customer",
-    icon: <UserIcon className="h-4 w-4" />,
-  },
-  { value: "driver", label: "Driver", icon: <TruckIcon className="h-4 w-4" /> },
-  {
-    value: "employee",
-    label: "Employee",
-    icon: <BriefcaseIcon className="h-4 w-4" />,
-  },
-  {
-    value: "managementEmployee",
-    label: "Management Employee",
-    icon: <UserGroupIcon className="h-4 w-4" />,
-  },
-  {
-    value: "landscaper",
-    label: "Landscaper",
-    icon: <SparklesIcon className="h-4 w-4" />,
-  },
-];
 
 const Login = () => {
   const [formData, setFormData] = useState({

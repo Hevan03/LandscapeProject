@@ -164,7 +164,7 @@ const BankSlipUpload = ({ amount, orderId, orderType, onSuccess }) => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
-  const [notes, setNotes] = useState("");
+  // optional notes disabled to reduce fields
   const [reference, setReference] = useState("");
 
   const handleFileChange = (e) => {
@@ -201,7 +201,7 @@ const BankSlipUpload = ({ amount, orderId, orderType, onSuccess }) => {
       formData.append("amount", amount);
       formData.append("method", "BankSlip");
       formData.append("bankSlip", file);
-      formData.append("notes", notes);
+      // formData.append("notes", notes);
       formData.append("orderType", orderType || "order");
       formData.append("referenceNumber", reference);
 

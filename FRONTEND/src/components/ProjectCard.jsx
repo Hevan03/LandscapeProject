@@ -2,21 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Slider from "react-slick";
 import { toast } from "react-hot-toast";
-import {
-  Download,
-  UploadCloud,
-  AlertTriangle,
-  Clock,
-  FileText,
-  ArrowRight,
-  Landmark,
-} from "lucide-react";
+import { Download, UploadCloud, AlertTriangle, Clock, FileText, ArrowRight, Landmark } from "lucide-react";
 import { uploadBlueprint } from "../api/landscapeApi";
 
 const ProjectCard = ({ project, onStatusUpdate }) => {
   const navigate = useNavigate();
   const [blueprintFile, setBlueprintFile] = useState(null);
-  const [isHovered, setIsHovered] = useState(false);
+  const [, /* isHovered */ setIsHovered] = useState(false);
 
   // FOR BLUEPRINT UPLOAD
   const handleFileChange = (e) => {
@@ -35,7 +27,7 @@ const ProjectCard = ({ project, onStatusUpdate }) => {
     try {
       await uploadBlueprint(project._id, formData);
       toast.success("Blueprint uploaded successfully!", { id: toastId });
-    } catch (error) {
+    } catch {
       toast.error("Failed to upload blueprint.", { id: toastId });
     }
   };
@@ -90,11 +82,7 @@ const ProjectCard = ({ project, onStatusUpdate }) => {
           <Slider {...sliderSettings} className="project-slider">
             {project.projectImages.map((image, index) => (
               <div key={index} className="relative">
-                <img
-                  src={`http://localhost:5001/${image}`}
-                  alt={`Project ${index + 1}`}
-                  className="w-full h-64 object-cover"
-                />
+                <img src={`http://localhost:5001/${image}`} alt={`Project ${index + 1}`} className="w-full h-64 object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
               </div>
             ))}
@@ -103,13 +91,7 @@ const ProjectCard = ({ project, onStatusUpdate }) => {
           <PlaceholderImage />
         )}
 
-        <div
-          className={`absolute top-4 right-4 px-3 py-1 rounded-full ${getStatusColor(
-            project.status
-          )} text-xs font-medium`}
-        >
-          {project.status}
-        </div>
+        <div className={`absolute top-4 right-4 px-3 py-1 rounded-full ${getStatusColor(project.status)} text-xs font-medium`}>{project.status}</div>
       </div>
 
       <div className="p-6">
@@ -123,15 +105,11 @@ const ProjectCard = ({ project, onStatusUpdate }) => {
         </div>
 
         <div className="bg-green-50 px-4 py-3 rounded-lg mb-4">
-          <p className="text-lg font-bold text-green-700">
-            {formatCurrency(project.totalCost)}
-          </p>
+          <p className="text-lg font-bold text-green-700">{formatCurrency(project.totalCost)}</p>
           <p className="text-xs text-green-600">Total Project Cost</p>
         </div>
 
-        <p className="text-gray-600 text-sm line-clamp-2 mb-4">
-          {project.description}
-        </p>
+        <p className="text-gray-600 text-sm line-clamp-2 mb-4">{project.description}</p>
 
         {project.blueprintRequested && !project.blueprintFile && (
           <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 mt-4 rounded-lg">
@@ -139,9 +117,7 @@ const ProjectCard = ({ project, onStatusUpdate }) => {
               <AlertTriangle size={18} className="mr-2 text-amber-500" />
               <p className="font-semibold">Blueprint Request</p>
             </div>
-            <p className="text-sm mb-3">
-              The customer has requested a blueprint for this project.
-            </p>
+            <p className="text-sm mb-3">The customer has requested a blueprint for this project.</p>
             <div className="space-y-2">
               <div className="relative">
                 <input
@@ -186,9 +162,7 @@ const ProjectCard = ({ project, onStatusUpdate }) => {
         </div>
 
         <div className="mt-5 border-t border-gray-100 pt-5">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Project Status
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Project Status</label>
           <select
             className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
             value={project.status}
@@ -205,10 +179,7 @@ const ProjectCard = ({ project, onStatusUpdate }) => {
           className="w-full mt-5 bg-gradient-to-r from-green-600 to-green-500 text-white py-3 px-6 rounded-lg hover:from-green-700 hover:to-green-600 transition-all duration-200 flex items-center justify-center font-medium group"
         >
           View Progress
-          <ArrowRight
-            size={18}
-            className="ml-2 group-hover:translate-x-1 transition-transform duration-200"
-          />
+          <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform duration-200" />
         </button>
       </div>
     </div>

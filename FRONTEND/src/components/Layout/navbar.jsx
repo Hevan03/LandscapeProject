@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Bell } from "lucide-react";
 import AuthContext from "../../context/AuthContext";
 import { Home, Truck, FileText, Package, Users, LogOut, Menu, X, ChevronDown } from "lucide-react";
@@ -7,7 +7,6 @@ import { Home, Truck, FileText, Package, Users, LogOut, Menu, X, ChevronDown } f
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [customerNotes, setCustomerNotes] = useState([]);
   const [notesOpen, setNotesOpen] = useState(false);

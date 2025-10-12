@@ -32,7 +32,7 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [customers, setCustomers] = useState([]);
+  const [, /* customers */ setCustomers] = useState([]);
 
   const serviceTypeOptions = [
     "Lawn Care",
@@ -52,13 +52,10 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
         email: customer.email || "",
         phone: customer.phone || "",
         address: customer.address || "",
-        dateOfBirth: customer.dateOfBirth
-          ? new Date(customer.dateOfBirth).toISOString().split("T")[0]
-          : "",
+        dateOfBirth: customer.dateOfBirth ? new Date(customer.dateOfBirth).toISOString().split("T")[0] : "",
         preferences: {
           serviceTypes: customer.preferences?.serviceTypes || [],
-          communicationMethod:
-            customer.preferences?.communicationMethod || "email",
+          communicationMethod: customer.preferences?.communicationMethod || "email",
           specialInstructions: customer.preferences?.specialInstructions || "",
         },
         status: customer.status || "active",
@@ -69,21 +66,16 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
 
   const fetchCustomers = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:5001/api/customers?limit=1000",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch("http://localhost:5001/api/customers?limit=1000", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       const data = await response.json();
       if (data.success) {
-        setCustomers(
-          data.data.customers.filter((c) => c._id !== customer?._id)
-        );
+        setCustomers(data.data.customers.filter((c) => c._id !== customer?._id));
       }
     } catch (error) {
       console.error("Error fetching customers:", error);
@@ -127,9 +119,7 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
     setLoading(true);
 
     try {
-      const url = customer
-        ? `http://localhost:5001/api/customers/${customer._id}`
-        : "http://localhost:5001/api/customers";
+      const url = customer ? `http://localhost:5001/api/customers/${customer._id}` : "http://localhost:5001/api/customers";
 
       const method = customer ? "PUT" : "POST";
 
@@ -145,11 +135,7 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
       const data = await response.json();
 
       if (data.success) {
-        toast.success(
-          customer
-            ? "Customer updated successfully"
-            : "Customer created successfully"
-        );
+        toast.success(customer ? "Customer updated successfully" : "Customer created successfully");
         onSuccess();
       } else {
         toast.error(data.message || "Failed to save customer");
@@ -192,9 +178,7 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                     {customer ? "Edit Customer" : "Add New Customer"}
                   </h3>
                   <p className="text-gray-600 text-sm mt-1">
-                    {customer
-                      ? "Update customer information and preferences"
-                      : "Create a new customer profile"}
+                    {customer ? "Update customer information and preferences" : "Create a new customer profile"}
                   </p>
                 </div>
               </div>
@@ -223,16 +207,12 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                   <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center">
                     <UserIcon className="w-5 h-5 text-white" />
                   </div>
-                  <h4 className="text-lg font-semibold text-gray-900">
-                    Basic Information
-                  </h4>
+                  <h4 className="text-lg font-semibold text-gray-900">Basic Information</h4>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Full Name *
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Full Name *</label>
                     <div className="relative">
                       <UserIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
 
@@ -249,9 +229,7 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Email Address *
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Email Address *</label>
                     <div className="relative">
                       <EnvelopeIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <input
@@ -267,9 +245,7 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Phone Number *
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Phone Number *</label>
                     <div className="relative">
                       <PhoneIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <input
@@ -285,9 +261,7 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Date of Birth
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Date of Birth</label>
                     <div className="relative">
                       <CalendarIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <input
@@ -300,10 +274,8 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                     </div>
                   </div>
 
-                                    <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Address Information
-                    </label>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Address Information</label>
                     <div className="relative">
                       <MapPinIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
 
@@ -319,12 +291,6 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                     </div>
                   </div>
                 </div>
-
-
-
-
-
-
               </motion.div>
 
               {/* Preferences Section */}
@@ -338,16 +304,12 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                   <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center">
                     <CogIcon className="w-5 h-5 text-white" />
                   </div>
-                  <h4 className="text-lg font-semibold text-gray-900">
-                    Preferences & Settings
-                  </h4>
+                  <h4 className="text-lg font-semibold text-gray-900">Preferences & Settings</h4>
                 </div>
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-4">
-                      Preferred Service Types
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-4">Preferred Service Types</label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {serviceTypeOptions.map((serviceType) => (
                         <motion.label
@@ -357,26 +319,18 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                         >
                           <input
                             type="checkbox"
-                            checked={formData.preferences.serviceTypes.includes(
-                              serviceType
-                            )}
-                            onChange={() =>
-                              handleServiceTypeChange(serviceType)
-                            }
+                            checked={formData.preferences.serviceTypes.includes(serviceType)}
+                            onChange={() => handleServiceTypeChange(serviceType)}
                             className="w-4 h-4 text-green-600 accent-emerald-500 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 outline-none"
                           />
-                          <span className="ml-3 text-sm font-medium text-gray-700">
-                            {serviceType}
-                          </span>
+                          <span className="ml-3 text-sm font-medium text-gray-700">{serviceType}</span>
                         </motion.label>
                       ))}
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">
-                        Communication Method
-                      </label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">Communication Method</label>
                       <div className="relative">
                         <ChatBubbleLeftRightIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <select
@@ -394,9 +348,7 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">
-                        Status
-                      </label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">Status</label>
                       <div className="relative">
                         <ExclamationCircleIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <select
@@ -413,9 +365,7 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Special Instructions
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Special Instructions</label>
                     <div className="relative">
                       <DocumentTextIcon className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
                       <textarea
@@ -429,8 +379,6 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                     </div>
                   </div>
                 </div>
-
-
               </motion.div>
 
               {/* Form Actions */}
@@ -456,16 +404,8 @@ const CustomerModal = ({ customer, onClose, onSuccess }) => {
                   disabled={loading}
                   className="bg-gradient-to-r from-green-600 to-green-700 text-white py-[8px] px-6 rounded-xl font-semibold hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center text-base shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
-                  <span className="relative z-10">
-                    {loading
-                      ? "Saving..."
-                      : customer
-                      ? "Update Customer"
-                      : "Create Customer"}
-                  </span>
-                  {loading && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 opacity-50"></div>
-                  )}
+                  <span className="relative z-10">{loading ? "Saving..." : customer ? "Update Customer" : "Create Customer"}</span>
+                  {loading && <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 opacity-50"></div>}
                 </motion.button>
               </motion.div>
             </form>

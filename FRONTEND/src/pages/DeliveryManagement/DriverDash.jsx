@@ -14,7 +14,6 @@ const DriverDash = () => {
       ? {
           username: driver.name || driver.username,
           vehicle: driver.vehicle || "",
-          driverId: driver._id || "",
           email: driver.email || "",
           contact: driver.contact || "",
           licenseNo: driver.licenseNo || "",
@@ -22,7 +21,6 @@ const DriverDash = () => {
       : {
           username: "",
           vehicle: "",
-          driverId: "",
           email: "",
           contact: "",
           licenseNo: "",
@@ -42,8 +40,7 @@ const DriverDash = () => {
 
   // Fetch driver details if not passed from login
   useEffect(() => {
-    const driverId = driver.id;
-
+    const driverId = driver?.id || driver?._id;
     if (!driverId) {
       toast.error("Driver ID not found. Please log in again.");
       return;
@@ -60,7 +57,6 @@ const DriverDash = () => {
           name: driverInfo.name || "",
           username: driverInfo.name || driverInfo.username || "",
           vehicle: driverInfo.vehicle || "",
-          driverId: driverInfo._id || "",
           email: driverInfo.email || "",
           contact: driverInfo.contact || "",
           licenseNo: driverInfo.licenseNo || "",
@@ -68,26 +64,23 @@ const DriverDash = () => {
 
         setAccidentReport((prev) => ({
           ...prev,
-          driverId: driverInfo._id || "",
+          driverId: driverInfo._id,
         }));
         fetchDriverDeliveries(driverInfo._id);
-      } catch (e) {
+      } catch {
         toast.error("Unable to load driver info.");
       }
     };
     fetchDriver();
-    setAccidentReport((prev) => ({
-      ...prev,
-      driverId: driver._id || "",
-    }));
-    fetchDriverDeliveries(driver._id);
-    fetchAccidentReports(driver._id);
-    fetchDriverDeliveries(driverData.driverId);
-  }, [driverData.driverId]);
+    // initialize accident report driverId
+    setAccidentReport((prev) => ({ ...prev, driverId }));
+    fetchDriverDeliveries(driverId);
+    fetchAccidentReports(driverId);
+  }, [driver]);
 
   const fetchDriverDeliveries = async (driverId) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/delivery/assignments/driver/${driver.id}`, { credentials: "include" });
+      const response = await fetch(`http://localhost:5001/api/delivery/assignments/driver/${driverId}`, { credentials: "include" });
       if (response.ok) {
         const deliveries = await response.json();
         setDeliveries(deliveries);
@@ -96,6 +89,7 @@ const DriverDash = () => {
         toast.error("No deliveries found for this driver.");
       }
     } catch (error) {
+      console.error(error);
       setDeliveries([]);
       toast.error("Failed to fetch driver deliveries.");
     }
@@ -109,6 +103,7 @@ const DriverDash = () => {
         setAccidents(data);
       }
     } catch (error) {
+      console.error(error);
       toast.error("Failed to fetch accident reports.");
     }
   };
@@ -124,44 +119,37 @@ const DriverDash = () => {
 
   const handleReportSubmit = async (e) => {
     e.preventDefault();
+    const reportData = {
+      driverId: accidentReport.driverId,
+      vehicleNo: accidentReport.vehicleNo,
+      deliveryId: accidentReport.deliveryId,
+      location: accidentReport.location,
+      description: accidentDetails,
+      photos:
+        photos.length > 0
+          ? photos.map((file) => ({
+              name: file.name,
+              url: "placeholder-url",
+            }))
+          : [],
+      time: new Date(),
+      status: "Reported",
+    };
     try {
-      const reportData = {
-        driverId: accidentReport.driverId,
-        vehicleNo: accidentReport.vehicleNo,
-        deliveryId: accidentReport.deliveryId,
-        location: accidentReport.location,
-        description: accidentDetails,
-        photos:
-          photos.length > 0
-            ? photos.map((file) => ({
-                name: file.name,
-                url: "placeholder-url",
-              }))
-            : [],
-        time: new Date(),
-        status: "Reported",
-      };
       const response = await fetch("http://localhost:5001/api/delivery/accident-reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(reportData),
       });
-      if (response.ok) {
-        toast.success("Accident report submitted successfully!");
-        setAccidentDetails("");
-        setPhotos([]);
-        setAccidentReport({
-          driverId: driverData.driverId,
-          vehicleNo: "",
-          deliveryId: "",
-          description: "",
-        });
-        setIsAccidentModalOpen(false);
-        fetchAccidentReports(driverData.driverId);
-      } else {
-        throw new Error("Failed to submit accident report");
-      }
+      if (!response.ok) throw new Error("Failed to submit accident report");
+      toast.success("Accident report submitted successfully!");
+      setAccidentDetails("");
+      setPhotos([]);
+      setAccidentReport({ driverId: accidentReport.driverId, vehicleNo: "", deliveryId: "", description: "" });
+      setIsAccidentModalOpen(false);
+      fetchAccidentReports(accidentReport.driverId);
     } catch (error) {
+      console.error(error);
       toast.error("Failed to submit accident report. Please try again.");
     }
   };

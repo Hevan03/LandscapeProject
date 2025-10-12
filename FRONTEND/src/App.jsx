@@ -36,7 +36,7 @@ import CustomerProjectsPage from "./components/Customer/CustomerProjectPage";
 import CustomerDashboard from "./pages/CustomerManagement/CustomerDashboard";
 import CustomerHomePage from "./pages/CustomerManagement/CustomerHomePage";
 import MaintanancePage from "./pages/CustomerManagement/MaintenancePage";
-import AdminMaintanancePage from "./pages/CustomerManagement/Admin/MaintenancePage";
+import AdminMaintanancePage from "./pages/CustomerManagement/Admin/MaintenanceHires";
 import AdminMaintenanceRequests from "./pages/CustomerManagement/AdminMaintenanceRequests";
 import CustomerMaintenance from "./pages/CustomerManagement/CustomerMaintenance";
 import CustomerAppointmentStatus from "./components/Customer/CustomerAppointmentStatus";

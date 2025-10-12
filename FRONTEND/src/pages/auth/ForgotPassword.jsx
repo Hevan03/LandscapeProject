@@ -1,15 +1,7 @@
+import { motion } from "framer-motion";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import {
-  FaLeaf,
-  FaEnvelope,
-  FaArrowLeft,
-  FaShieldAlt,
-  FaUserFriends,
-  FaAward,
-  FaCheckCircle,
-} from "react-icons/fa";
+import { FaLeaf, FaEnvelope, FaArrowLeft, FaShieldAlt, FaUserFriends, FaAward, FaCheckCircle } from "react-icons/fa";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -44,6 +36,8 @@ const ForgotPassword = () => {
 
       setIsSubmitted(true);
     } catch (err) {
+      // Log error and show friendly message
+      console.error("forgot-password submit failed", err);
       setError("Failed to send reset email. Please try again.");
     } finally {
       setIsLoading(false);
@@ -88,8 +82,7 @@ const ForgotPassword = () => {
               </h1>
 
               <p className="text-xl text-green-100 mb-12 leading-relaxed">
-                We've sent password reset instructions to your email address.
-                Follow the link to create a new password.
+                We've sent password reset instructions to your email address. Follow the link to create a new password.
               </p>
 
               <div className="space-y-6">
@@ -98,12 +91,8 @@ const ForgotPassword = () => {
                     <FaCheckCircle className="w-5 h-5 text-green-300" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">
-                      Email Sent
-                    </h3>
-                    <p className="text-green-200 text-sm">
-                      Check your inbox and spam folder
-                    </p>
+                    <h3 className="text-lg font-semibold text-white">Email Sent</h3>
+                    <p className="text-green-200 text-sm">Check your inbox and spam folder</p>
                   </div>
                 </div>
               </div>
@@ -124,9 +113,7 @@ const ForgotPassword = () => {
                 <FaCheckCircle className="w-10 h-10 text-green-600" />
               </div>
 
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Check Your Email
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Check Your Email</h2>
 
               <p className="text-gray-600 mb-6">
                 We've sent a password reset link to <strong>{email}</strong>
@@ -134,8 +121,7 @@ const ForgotPassword = () => {
 
               <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
                 <p className="text-sm text-green-700">
-                  <strong>Didn't receive the email?</strong> Check your spam
-                  folder or wait a few minutes for delivery.
+                  <strong>Didn't receive the email?</strong> Check your spam folder or wait a few minutes for delivery.
                 </p>
               </div>
 
@@ -194,8 +180,7 @@ const ForgotPassword = () => {
             </h1>
 
             <p className="text-xl text-green-100 mb-12 leading-relaxed">
-              Don't worry, it happens to the best of us. Enter your email and
-              we'll send you a link to reset your password.
+              Don't worry, it happens to the best of us. Enter your email and we'll send you a link to reset your password.
             </p>
 
             <div className="space-y-6">
@@ -209,12 +194,8 @@ const ForgotPassword = () => {
                   <FaShieldAlt className="w-5 h-5 text-green-300" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">
-                    Secure Process
-                  </h3>
-                  <p className="text-green-200 text-sm">
-                    Your account security is our top priority
-                  </p>
+                  <h3 className="text-lg font-semibold text-white">Secure Process</h3>
+                  <p className="text-green-200 text-sm">Your account security is our top priority</p>
                 </div>
               </motion.div>
 
@@ -228,12 +209,8 @@ const ForgotPassword = () => {
                   <FaUserFriends className="w-5 h-5 text-green-300" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">
-                    Quick Support
-                  </h3>
-                  <p className="text-green-200 text-sm">
-                    Need help? Our support team is here 24/7
-                  </p>
+                  <h3 className="text-lg font-semibold text-white">Quick Support</h3>
+                  <p className="text-green-200 text-sm">Need help? Our support team is here 24/7</p>
                 </div>
               </motion.div>
 
@@ -247,20 +224,15 @@ const ForgotPassword = () => {
                   <FaAward className="w-5 h-5 text-green-300" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">
-                    Trusted Platform
-                  </h3>
-                  <p className="text-green-200 text-sm">
-                    Join thousands of satisfied eco-gardeners
-                  </p>
+                  <h3 className="text-lg font-semibold text-white">Trusted Platform</h3>
+                  <p className="text-green-200 text-sm">Join thousands of satisfied eco-gardeners</p>
                 </div>
               </motion.div>
             </div>
 
             <div className="mt-12 p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
               <p className="text-green-100 mb-4 italic">
-                "The password reset process was quick and secure. I was back to
-                planning my garden in no time!"
+                "The password reset process was quick and secure. I was back to planning my garden in no time!"
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-300 rounded-full flex items-center justify-center">
@@ -278,24 +250,15 @@ const ForgotPassword = () => {
 
       {/* Right Side - Forgot Password Form */}
       <div className="flex-2 flex items-center justify-center p-8 bg-gray-50">
-        <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          className="w-full max-w-md"
-        >
+        <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="w-full max-w-md">
           <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
             {/* Header */}
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <FaLeaf className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                Forgot Password?
-              </h2>
-              <p className="text-gray-600">
-                No worries, we'll help you reset it
-              </p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password?</h2>
+              <p className="text-gray-600">No worries, we'll help you reset it</p>
             </div>
 
             {/* Error Message */}
@@ -312,9 +275,7 @@ const ForgotPassword = () => {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                 <FaEnvelope className="absolute left-4 top-12 transform -translate-y-1/2 text-gray-400 text-sm" />
                 <input
                   type="email"
@@ -357,18 +318,12 @@ const ForgotPassword = () => {
             <div className="mt-6 p-4 bg-gray-50 rounded-xl">
               <p className="text-xs text-gray-600 text-center leading-relaxed">
                 Remember your password?{" "}
-                <Link
-                  to="/login"
-                  className="text-green-600 hover:text-green-500 font-medium"
-                >
+                <Link to="/login" className="text-green-600 hover:text-green-500 font-medium">
                   Sign in here
                 </Link>
                 <br />
                 Need help?{" "}
-                <Link
-                  to="/contact"
-                  className="text-green-600 hover:text-green-500 font-medium"
-                >
+                <Link to="/contact" className="text-green-600 hover:text-green-500 font-medium">
                   Contact support
                 </Link>
               </p>

@@ -9,7 +9,7 @@ const CustomerMaintenance = () => {
 
   const [workers, setWorkers] = useState([]);
   const [myHires, setMyHires] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState({ open: false, worker: null });
   const [form, setForm] = useState({ scheduledDate: "", scheduledTime: "", address: "", description: "", priority: "medium" });
 
@@ -29,7 +29,7 @@ const CustomerMaintenance = () => {
     try {
       const res = await api.get("/maintenance/customer/hires");
       setMyHires(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
+    } catch {
       // ignore when not a customer
     }
   };
@@ -54,7 +54,7 @@ const CustomerMaintenance = () => {
     }
   };
 
-  const cancelPending = async (hireId) => {
+  const cancelPending = async () => {
     // You may implement a cancel endpoint; for now just inform
     toast("Cancel feature pending");
   };

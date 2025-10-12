@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { BsFileEarmarkText, BsSearch, BsFilter } from "react-icons/bs";
 import { FaCheck, FaHourglassHalf, FaInfoCircle, FaBell } from "react-icons/fa";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 
 import toast from "react-hot-toast";
 
@@ -72,13 +71,13 @@ const AccidentReports = () => {
   };
 
   // Placeholder function for customer notification
-  const handleNotifyCustomer = async (deliveryId) => {
+  const handleNotifyCustomer = async () => {
     // **NOTE:** You need to implement this API endpoint on your backend
     // It should find the customer by deliveryId and send a notification (e.g., email)
     try {
       // const res = await axios.post('http://localhost:5000/notifications/send', { deliveryId });
       toast.success("Customer has been notified of the delay.");
-    } catch (error) {
+    } catch {
       toast.error("Failed to send notification.");
     }
   };

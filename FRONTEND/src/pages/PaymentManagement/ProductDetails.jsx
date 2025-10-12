@@ -19,7 +19,6 @@ const ProductDetails = () => {
 
   useEffect(() => {
     const fetchItem = async () => {
-      console.log("Fetching item with ID:", id);
       try {
         setLoading(true);
         const resp = await getItemById(id);

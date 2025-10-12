@@ -27,7 +27,7 @@ const ServicePayments = () => {
   const [paymentHistory, setPaymentHistory] = useState([]);
 
   // Service details - can be fetched from URL params or API
-  const [serviceDetails, setServiceDetails] = useState({
+  const [serviceDetails] = useState({
     serviceId: serviceId || hireId || "SVC001",
     customerName: "Alice Johnson",
     totalProjectCost: totalAmountParam ? parseFloat(totalAmountParam) : 20000,
@@ -38,6 +38,8 @@ const ServicePayments = () => {
     if (serviceDetails.totalProjectCost > 0) {
       calculateBalance();
     }
+    // expose a simple UX flag: receipt becomes available after any submission
+    setIsReceiptAvailable(paymentHistory.length > 0);
   }, [serviceDetails.totalProjectCost, paymentHistory]);
 
   // Calculate balance based on payment history

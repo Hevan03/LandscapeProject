@@ -54,9 +54,7 @@ const CreateProgressPage = () => {
   };
 
   const handleToggleTask = (indexToToggle) => {
-    const updatedTasks = tasks.map((task, index) =>
-      index === indexToToggle ? { ...task, completed: !task.completed } : task
-    );
+    const updatedTasks = tasks.map((task, index) => (index === indexToToggle ? { ...task, completed: !task.completed } : task));
     setTasks(updatedTasks);
   };
 
@@ -70,9 +68,7 @@ const CreateProgressPage = () => {
       return;
     }
     setImages(files);
-    const previewUrls = Array.from(files).map((file) =>
-      URL.createObjectURL(file)
-    );
+    const previewUrls = Array.from(files).map((file) => URL.createObjectURL(file));
     setImagePreviews(previewUrls);
   };
 
@@ -93,7 +89,7 @@ const CreateProgressPage = () => {
       toast.success("Progress post created successfully!");
       // Navigate back to the progress feed for this specific project
       navigate(`/addprogress/${landscapeId}`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to create post. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -108,14 +104,9 @@ const CreateProgressPage = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen pt-24 pb-12 px-4">
-      <form
-        onSubmit={handleFormSubmit}
-        className="max-w-3xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden"
-      >
+      <form onSubmit={handleFormSubmit} className="max-w-3xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
         <div className="p-6 border-b">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Create New Progress Post
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Create New Progress Post</h1>
           {/* Display the fetched project details automatically */}
           {projectDetails ? (
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm bg-green-50 p-4 rounded-md border border-green-200">
@@ -133,9 +124,7 @@ const CreateProgressPage = () => {
               </div>
             </div>
           ) : (
-            <div className="mt-4 p-4 bg-gray-50 rounded-md">
-              Loading project details...
-            </div>
+            <div className="mt-4 p-4 bg-gray-50 rounded-md">Loading project details...</div>
           )}
         </div>
 
@@ -155,10 +144,7 @@ const CreateProgressPage = () => {
         {/* The manual Project ID input has been removed */}
 
         <div className="p-6 border-t">
-          <label
-            htmlFor="description"
-            className="block text-lg font-semibold text-gray-800 mb-2"
-          >
+          <label htmlFor="description" className="block text-lg font-semibold text-gray-800 mb-2">
             Description
           </label>
           <textarea
@@ -174,10 +160,7 @@ const CreateProgressPage = () => {
           <RequiredLabel label="Tasks Checklist" />
           <div className="space-y-3 mb-4">
             {tasks.map((task, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
-              >
+              <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -185,19 +168,10 @@ const CreateProgressPage = () => {
                     onChange={() => handleToggleTask(index)}
                     className="h-5 w-5 rounded text-green-600 focus:ring-green-500"
                   />
-                  <span
-                    className={`ml-3 ${
-                      task.completed ? "line-through text-gray-500" : ""
-                    }`}
-                  >
-                    {task.name}
-                  </span>
+                  <span className={`ml-3 ${task.completed ? "line-through text-gray-500" : ""}`}>{task.name}</span>
                 </div>
                 <button type="button" onClick={() => handleDeleteTask(index)}>
-                  <Trash2
-                    size={20}
-                    className="text-red-500 hover:text-red-700"
-                  />
+                  <Trash2 size={20} className="text-red-500 hover:text-red-700" />
                 </button>
               </div>
             ))}
@@ -210,11 +184,7 @@ const CreateProgressPage = () => {
               placeholder="Enter new task name"
               className="flex-grow p-2 border rounded-l-md focus:ring-2 focus:ring-green-500"
             />
-            <button
-              type="button"
-              onClick={handleAddTask}
-              className="bg-gray-800 text-white p-2 rounded-r-md hover:bg-black"
-            >
+            <button type="button" onClick={handleAddTask} className="bg-gray-800 text-white p-2 rounded-r-md hover:bg-black">
               <Plus size={24} />
             </button>
           </div>
@@ -232,12 +202,7 @@ const CreateProgressPage = () => {
           />
           <div className="mt-4 grid grid-cols-5 gap-2">
             {imagePreviews.map((src, index) => (
-              <img
-                key={index}
-                src={src}
-                alt={`Preview ${index + 1}`}
-                className="w-full h-24 object-cover rounded-md"
-              />
+              <img key={index} src={src} alt={`Preview ${index + 1}`} className="w-full h-24 object-cover rounded-md" />
             ))}
           </div>
         </div>

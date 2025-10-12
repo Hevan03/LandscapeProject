@@ -13,8 +13,8 @@ const ItemSelect = () => {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const res = await getAllItems();
-        setItems(res.data);
+        const { data } = await getAllItems();
+        setItems(data);
       } catch (err) {
         console.error("Error fetching items:", err);
       }
@@ -62,8 +62,8 @@ const ItemSelect = () => {
     };
 
     try {
-      const res = await createLandscaperRequest(order);
-      console.log("Saved request:", res.data);
+      await createLandscaperRequest(order);
+
       alert("Request submitted successfully!");
     } catch (err) {
       console.error("Error submitting request:", err);

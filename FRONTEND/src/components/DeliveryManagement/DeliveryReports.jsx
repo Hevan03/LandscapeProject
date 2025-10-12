@@ -1,96 +1,23 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { BsFileEarmarkSpreadsheet, BsGraphUp } from "react-icons/bs";
 import { BiExport } from "react-icons/bi";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  Brush,
-  ComposedChart,
-  Area,
-} from "recharts";
+import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Line, Brush, ComposedChart, Area } from "recharts";
 import toast from "react-hot-toast";
 import { parseISO, format, subMonths } from "date-fns";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import autoTable from "jspdf-autotable";
-import { downloadDeliveryReportCsv, getAssignedDeliveries } from "../../api/deliveryAssignApi";
+import { getAssignedDeliveries } from "../../api/deliveryAssignApi";
 
 // Import the new API functions
-import {
-  getAllDeliveryReports,
-  getMonthlyDeliveryReports,
-  getDeliveriesByDriver,
-  getDeliveriesByVehicle,
-  exportReports,
-} from "../../api/deliveryReportApi";
+import { getAllDeliveryReports, getMonthlyDeliveryReports, getDeliveriesByDriver, getDeliveriesByVehicle } from "../../api/deliveryReportApi";
 // Assuming you have these APIs for the filter dropdowns
 import { getAllDrivers } from "../../api/driverApi";
 import { getAllVehicles } from "../../api/vehicleApi";
 
 const COLORS = ["#4CAF50", "#FFC107", "#F44336", "#2196F3", "#9C27B0"];
 
-//download handler
-// Download CSV of filtered data
-const handleDownloadCsv = () => {
-  toast.promise(
-    Promise.resolve().then(() => {
-      const csvRows = [];
-      // Add headers
-      csvRows.push(["Order ID", "Driver", "Vehicle", "Status", "Date", "Amount", "Address"]);
-
-      // Add data
-      detailedReports.forEach((item) => {
-        csvRows.push([
-          item.orderId?._id ? item.orderId._id.toString().slice(-6) : "N/A",
-          item.driverId?.name || "N/A",
-          item.vehicleId?.vehicleNo || "N/A",
-          item.status,
-          item.createdAt ? format(parseISO(item.createdAt), "yyyy-MM-dd") : "N/A",
-          item.orderId?.totalAmount ? `${item.orderId.totalAmount}` : "-",
-          item.orderId?.deliveryAddress || "N/A",
-        ]);
-      });
-
-      let csvContent = "";
-      csvRows.forEach((row) => {
-        // Ensure each field is properly quoted to handle commas in the content
-        const quotedRow = row.map((field) => `"${String(field).replace(/"/g, '""')}"`);
-        csvContent += quotedRow.join(",") + "\r\n";
-      });
-
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      const fileName = `delivery_report_${format(new Date(), "yyyy-MM-dd")}.csv`;
-      link.setAttribute("download", fileName);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      return fileName;
-    }),
-    {
-      loading: "Generating CSV...",
-      success: (fileName) => `CSV downloaded as ${fileName}!`,
-      error: "Failed to generate CSV",
-    }
-  );
-};
 const DeliveryReports = () => {
   // State to hold fetched data
-  const [reports, setReports] = useState([]);
   const [detailedReports, setDetailedReports] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -106,20 +33,16 @@ const DeliveryReports = () => {
 
   // State for chart data
   const [deliveriesData, setDeliveriesData] = useState([]);
-  const [driverData, setDriverData] = useState([]);
+  // const [driverData, setDriverData] = useState([]); // not used in UI currently
   const [deliveryStatusData, setDeliveryStatusData] = useState([]);
 
-  useEffect(() => {
-    fetchAllData();
-  }, []);
-
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     try {
-      // Fetch all reports to populate charts
-      const reportsRes = await getAllDeliveryReports();
+      // Fetch all reports to populate charts (not used directly, kept for future use)
+      await getAllDeliveryReports();
       const assignmentsRes = await getAssignedDeliveries();
 
-      setReports(reportsRes.data);
+      // We only use assignments for table and charts currently
       setDetailedReports(assignmentsRes.data || []);
       processReportsForCharts(assignmentsRes.data || []);
 
@@ -136,7 +59,11 @@ const DeliveryReports = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   const tableRef = useRef(null);
 
@@ -202,7 +129,6 @@ const DeliveryReports = () => {
       // Skip processing if no data
       if (!Array.isArray(data) || data.length === 0) {
         setDeliveriesData([]);
-        setDriverData([]);
         setDeliveryStatusData([]);
         return;
       }
@@ -212,7 +138,6 @@ const DeliveryReports = () => {
         if (!report.createdAt) return acc;
 
         try {
-          const dateKey = format(parseISO(report.createdAt), "yyyy-MM-dd");
           const month = format(parseISO(report.createdAt), "MMM yyyy");
 
           if (!acc[month]) {
@@ -243,8 +168,8 @@ const DeliveryReports = () => {
           }
 
           return acc;
-        } catch (e) {
-          console.error("Date parsing error:", e);
+        } catch {
+          // skip invalid dates
           return acc;
         }
       }, {});
@@ -281,11 +206,10 @@ const DeliveryReports = () => {
       }, {});
 
       // Convert to array and limit to top 8 drivers
-      const driversData = Object.values(driverCounts)
+      Object.values(driverCounts)
         .sort((a, b) => b.deliveries - a.deliveries)
         .slice(0, 8);
-
-      setDriverData(driversData);
+      // Not currently visualized in UI
 
       // Process data for Delivery Status Pie Chart
       const statusCounts = data.reduce((acc, report) => {
@@ -321,8 +245,8 @@ const DeliveryReports = () => {
       } else {
         res = await getAllDeliveryReports();
       }
-      setReports(res.data);
-      processReportsForCharts(res.data);
+      // When applying filters, we only visualize chart data; keep table based on assignments
+      processReportsForCharts(res.data || []);
     } catch (error) {
       console.error("Failed to apply filter:", error);
       toast.error("Failed to load filtered data.");
@@ -373,7 +297,9 @@ const DeliveryReports = () => {
           // Force a theme that uses hex colors (avoid oklch) in DaisyUI
           try {
             doc.documentElement.setAttribute("data-theme", "light");
-          } catch {}
+          } catch {
+            // ignore theme set failures in cloned DOM
+          }
           const style = doc.createElement("style");
           style.setAttribute("id", "pdf-export-safelook");
           style.innerHTML = `
@@ -447,6 +373,54 @@ const DeliveryReports = () => {
       console.error("Export failed:", error);
       toast.error("Failed to export report.");
     }
+  };
+
+  // Download CSV of filtered/detail data - moved inside component to access state
+  const handleDownloadCsv = () => {
+    toast.promise(
+      Promise.resolve().then(() => {
+        const csvRows = [];
+        // Add headers
+        csvRows.push(["Order ID", "Driver", "Vehicle", "Status", "Date", "Amount", "Address"]);
+
+        // Add data
+        detailedReports.forEach((item) => {
+          csvRows.push([
+            item.orderId?._id ? item.orderId._id.toString().slice(-6) : "N/A",
+            item.driverId?.name || "N/A",
+            item.vehicleId?.vehicleNo || "N/A",
+            item.status,
+            item.createdAt ? format(parseISO(item.createdAt), "yyyy-MM-dd") : "N/A",
+            item.orderId?.totalAmount ? `${item.orderId.totalAmount}` : "-",
+            item.orderId?.deliveryAddress || "N/A",
+          ]);
+        });
+
+        let csvContent = "";
+        csvRows.forEach((row) => {
+          // Ensure each field is properly quoted to handle commas in the content
+          const quotedRow = row.map((field) => `"${String(field).replace(/"/g, '""')}"`);
+          csvContent += quotedRow.join(",") + "\r\n";
+        });
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        const fileName = `delivery_report_${format(new Date(), "yyyy-MM-dd")}.csv`;
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        return fileName;
+      }),
+      {
+        loading: "Generating CSV...",
+        success: (fileName) => `CSV downloaded as ${fileName}!`,
+        error: "Failed to generate CSV",
+      }
+    );
   };
 
   return (

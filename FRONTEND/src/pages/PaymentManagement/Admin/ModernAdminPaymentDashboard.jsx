@@ -157,15 +157,10 @@ const ModernAdminPaymentDashboard = () => {
   ];
 
   // Calculate payment completion percentages for the summary chart
-  const completedPercentage = totalPayments > 0 ? Math.round((completedPayments / totalPayments) * 100) : 0;
-  const pendingPercentage = totalPayments > 0 ? Math.round((pendingPayments / totalPayments) * 100) : 0;
-  const rejectedPercentage = totalPayments > 0 ? 100 - completedPercentage - pendingPercentage : 0;
+  // Percentages available if needed for future summary visuals
+  // const rejectedPercentage = totalPayments > 0 ? 100 - completedPercentage - pendingPercentage : 0;
 
-  const paymentsCompletionData = [
-    { name: "Completed", value: completedPercentage, color: "#10B981" },
-    { name: "Pending", value: pendingPercentage, color: "#F59E0B" },
-    { name: "Rejected", value: rejectedPercentage, color: "#EF4444" },
-  ].filter((item) => item.value > 0);
+  // Derived summary percentages available if needed for future charts
 
   // Monthly payment data for line chart
   const monthlyPaymentData = allPayments.reduce((acc, payment) => {
@@ -640,13 +635,13 @@ const ModernAdminPaymentDashboard = () => {
                           fill="#8884d8"
                           dataKey="value"
                           labelLine={false}
-                          label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                          label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                         >
                           {paymentsByTypeData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <RechartsTooltip formatter={(value, name) => [`${value} payments`, name]} />
+                        <RechartsTooltip formatter={(value) => [`${value} payments`, ""]} />
                         <Legend verticalAlign="bottom" height={36} />
                       </PieChart>
                     </ResponsiveContainer>
@@ -675,13 +670,13 @@ const ModernAdminPaymentDashboard = () => {
                           fill="#8884d8"
                           dataKey="value"
                           labelLine={false}
-                          label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                          label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                         >
                           {paymentsByStatusData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <RechartsTooltip formatter={(value, name) => [`${value} payments`, name]} />
+                        <RechartsTooltip formatter={(value) => [`${value} payments`, ""]} />
                         <Legend verticalAlign="bottom" height={36} />
                       </PieChart>
                     </ResponsiveContainer>

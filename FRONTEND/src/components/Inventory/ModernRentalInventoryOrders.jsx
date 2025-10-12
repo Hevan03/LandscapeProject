@@ -352,13 +352,13 @@ const ModernRentalOrders = () => {
                           fill="#8884d8"
                           dataKey="value"
                           labelLine={false}
-                          label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                          label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                         >
                           {statusData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <RechartsTooltip formatter={(value, name) => [`${value} orders`, name]} />
+                        <RechartsTooltip formatter={(value, _name) => [`${value} orders`, _name]} />
                         <Legend verticalAlign="bottom" height={36} />
                       </PieChart>
                     </ResponsiveContainer>

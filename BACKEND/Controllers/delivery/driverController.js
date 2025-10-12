@@ -1,4 +1,3 @@
-import e from "express";
 import Driver from "../../Models/delivery/driverModel.js";
 import { hashPassword } from "../../utils/authAndNotify.js";
 
@@ -64,7 +63,7 @@ export const updateDriver = async (req, res) => {
     // Map potential legacy fields
     if (payload.contact && !payload.phone) payload.phone = payload.contact;
     if (payload.availability && !payload.driveravailability) payload.driveravailability = payload.availability;
-    console.log("Update payload:", payload);
+
     delete payload.contact;
     delete payload.availability;
     const updatedDriver = await Driver.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });

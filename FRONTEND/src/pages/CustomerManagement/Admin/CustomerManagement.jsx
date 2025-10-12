@@ -19,7 +19,6 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "../../../context/AuthContext";
 import CustomerModal from "./CustomerModal";
 import CustomerDetails from "./CustomerDetails";
 import { toast } from "react-hot-toast";
@@ -95,7 +94,6 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, customerName, isD
 };
 
 const CustomerManagement = () => {
-  const { user } = useAuth();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
@@ -251,7 +249,7 @@ const CustomerManagement = () => {
         valign: "middle",
       },
       margin: { left: 8, right: 8 },
-      didDrawPage: (data) => {
+      didDrawPage: () => {
         // Footer
         doc.setFontSize(9);
         doc.setTextColor(180, 180, 180);
@@ -264,10 +262,7 @@ const CustomerManagement = () => {
     doc.save("Customer_Report.pdf");
   };
 
-  const handleCreateCustomer = () => {
-    setSelectedCustomer(null);
-    setShowModal(true);
-  };
+  // New customer creation is handled via the modal open button directly; no separate handler needed
 
   const handleEditCustomer = (customer) => {
     setSelectedCustomer(customer);

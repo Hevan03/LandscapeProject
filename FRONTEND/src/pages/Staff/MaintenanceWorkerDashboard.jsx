@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
@@ -8,6 +8,9 @@ const MaintenanceWorkerDashboard = () => {
   const [hires, setHires] = useState([]);
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [customerModal, setCustomerModal] = useState({ open: false, customer: null });
+  const [ratingModal, setRatingModal] = useState({ open: false, targetId: null });
+  const [ratingData, setRatingData] = useState({ rating: 5, comment: "", clientName: "" });
 
   const fetchAll = async () => {
     try {
@@ -36,6 +39,36 @@ const MaintenanceWorkerDashboard = () => {
     } catch (err) {
       console.error(err);
       toast.error("Failed to update request");
+    }
+  };
+
+  const viewCustomer = (hire) => {
+    if (!hire?.customer) return toast.error("No customer details");
+    setCustomerModal({ open: true, customer: hire.customer });
+  };
+
+  const rateCustomer = (hire) => {
+    if (!hire?.customer?._id) return toast.error("Invalid customer");
+    const defaultClient = profile?.name || user?.name || "";
+    setRatingData((d) => ({ ...d, clientName: defaultClient || d.clientName }));
+    setRatingModal({ open: true, targetId: hire.customer._id });
+  };
+
+  const submitRating = async () => {
+    try {
+      if (!ratingModal.targetId) return toast.error("No target selected");
+      if (!ratingData.clientName.trim()) return toast.error("Please enter your name");
+      await api.post(`/rating/${ratingModal.targetId}/rate-public`, {
+        rating: Number(ratingData.rating) || 5,
+        comment: ratingData.comment || "",
+        clientName: ratingData.clientName,
+      });
+      toast.success("Feedback submitted");
+      setRatingModal({ open: false, targetId: null });
+      setRatingData({ rating: 5, comment: "", clientName: "" });
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to submit rating");
     }
   };
 
@@ -94,6 +127,9 @@ const MaintenanceWorkerDashboard = () => {
                   {h.description && <div className="text-sm">Desc: {h.description}</div>}
                 </div>
                 <div className="flex gap-2">
+                  <button onClick={() => viewCustomer(h)} className="px-3 py-1 bg-white border rounded">
+                    View Customer
+                  </button>
                   {h.status === "pending" && (
                     <>
                       <button onClick={() => respond(h._id, "accept")} className="px-3 py-1 bg-green-600 text-white rounded">
@@ -103,6 +139,11 @@ const MaintenanceWorkerDashboard = () => {
                         Reject
                       </button>
                     </>
+                  )}
+                  {h.status === "completed" && (
+                    <button onClick={() => rateCustomer(h)} className="px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded">
+                      Add Feedback
+                    </button>
                   )}
                 </div>
               </div>
@@ -132,6 +173,94 @@ const MaintenanceWorkerDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Customer Details Modal */}
+      {customerModal.open && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
+            <div className="bg-gradient-to-r from-green-600 to-green-500 p-5 rounded-t-2xl text-white">
+              <h3 className="text-xl font-semibold">Hired Customer</h3>
+            </div>
+            <div className="p-5 space-y-2 text-sm">
+              <div>
+                <span className="text-gray-500">Name: </span>
+                <span className="font-medium">{customerModal.customer?.name || "-"}</span>
+              </div>
+              <div>
+                <span className="text-gray-500">Email: </span>
+                <span>{customerModal.customer?.email || "-"}</span>
+              </div>
+              <div>
+                <span className="text-gray-500">Phone: </span>
+                <span>{customerModal.customer?.phone || customerModal.customer?.contactNumber || "-"}</span>
+              </div>
+              <div>
+                <span className="text-gray-500">Customer ID: </span>
+                <span className="font-mono">{customerModal.customer?._id || "-"}</span>
+              </div>
+            </div>
+            <div className="p-5 flex justify-end gap-2 border-t">
+              <button onClick={() => setCustomerModal({ open: false, customer: null })} className="px-4 py-2 bg-gray-200 rounded">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rating Modal */}
+      {ratingModal.open && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+            <div className="bg-gradient-to-r from-green-600 to-green-500 p-5 rounded-t-2xl text-white">
+              <h3 className="text-xl font-semibold">Add Feedback</h3>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Your Name</label>
+                <input
+                  value={ratingData.clientName}
+                  onChange={(e) => setRatingData((d) => ({ ...d, clientName: e.target.value }))}
+                  className="w-full px-3 py-2 border rounded"
+                  placeholder="Enter your name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Rating</label>
+                <select
+                  value={ratingData.rating}
+                  onChange={(e) => setRatingData((d) => ({ ...d, rating: Number(e.target.value) }))}
+                  className="w-full px-3 py-2 border rounded"
+                >
+                  {[5, 4, 3, 2, 1].map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Comment (optional)</label>
+                <textarea
+                  rows={4}
+                  value={ratingData.comment}
+                  onChange={(e) => setRatingData((d) => ({ ...d, comment: e.target.value }))}
+                  className="w-full px-3 py-2 border rounded"
+                  placeholder="Share your experience..."
+                />
+              </div>
+            </div>
+            <div className="p-5 flex justify-end gap-2 border-t">
+              <button onClick={() => setRatingModal({ open: false, targetId: null })} className="px-4 py-2 bg-gray-200 rounded">
+                Cancel
+              </button>
+              <button onClick={submitRating} className="px-4 py-2 bg-green-600 text-white rounded">
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

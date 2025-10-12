@@ -13,14 +13,11 @@ const LandscaperAppointments = () => {
 
   const { user } = useContext(AuthContext);
   const loggedInLandscaperId = user?.id;
-  console.log("Logged in landscaper ID:", loggedInLandscaperId);
 
   const fetchAppointments = async (loggedInLandscaperId) => {
     if (!loggedInLandscaperId) return;
     try {
-      const { data } = await axios.get(
-        `http://localhost:5001/api/appointments/landscaper/${loggedInLandscaperId}`
-      );
+      const { data } = await axios.get(`http://localhost:5001/api/appointments/landscaper/${loggedInLandscaperId}`);
       setAppointments(data);
     } catch (error) {
       console.error("Failed to fetch appointments", error);
@@ -36,10 +33,7 @@ const LandscaperAppointments = () => {
 
   const handleStatusChange = async (appointmentId, newStatus) => {
     try {
-      await axios.patch(
-        `http://localhost:5001/api/appointments/${appointmentId}/status`,
-        { status: newStatus }
-      );
+      await axios.patch(`http://localhost:5001/api/appointments/${appointmentId}/status`, { status: newStatus });
       // Refresh the list
       fetchAppointments(loggedInLandscaperId);
     } catch (error) {
@@ -88,9 +82,7 @@ const LandscaperAppointments = () => {
               <tr key={app._id} className="hover">
                 <td>{app.customer?.name || "N/A"}</td>
                 <td>
-                  {app.appointmentDate
-                    ? format(new Date(app.appointmentDate), "yyyy-MM-dd")
-                    : "No Date"}
+                  {app.appointmentDate ? format(new Date(app.appointmentDate), "yyyy-MM-dd") : "No Date"}
                   {" at "}
                   {app.timeSlot || "N/A"}
                 </td>
@@ -99,9 +91,7 @@ const LandscaperAppointments = () => {
                   <select
                     className="select select-bordered select-sm"
                     value={app.status}
-                    onChange={(e) =>
-                      handleStatusChange(app._id, e.target.value)
-                    }
+                    onChange={(e) => handleStatusChange(app._id, e.target.value)}
                   >
                     <option>Payment Pending</option>
                     <option>Confirmed</option>
@@ -111,10 +101,7 @@ const LandscaperAppointments = () => {
                   </select>
                 </td>
                 <td>
-                  <button
-                    className="btn btn-sm btn-outline btn-success"
-                    onClick={() => setSelectedAppointment(app)}
-                  >
+                  <button className="btn btn-sm btn-outline btn-success" onClick={() => setSelectedAppointment(app)}>
                     See More
                   </button>
                 </td>
@@ -124,12 +111,7 @@ const LandscaperAppointments = () => {
         </table>
       </div>
 
-      {selectedAppointment && (
-        <AppointmentDetailsModal
-          appointment={selectedAppointment}
-          onClose={() => setSelectedAppointment(null)}
-        />
-      )}
+      {selectedAppointment && <AppointmentDetailsModal appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} />}
     </div>
   );
 };

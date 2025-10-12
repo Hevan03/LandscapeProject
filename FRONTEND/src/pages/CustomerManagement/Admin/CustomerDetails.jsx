@@ -33,15 +33,12 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
   const fetchMaintenanceRequests = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `http://localhost:5000/api/maintenance?customerId=${customer._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`http://localhost:5000/api/maintenance?customerId=${customer._id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       const data = await response.json();
 
@@ -113,10 +110,7 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
     return age;
@@ -147,24 +141,14 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
                 <UserIcon className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-900">
-                  {customer.name}
-                </h3>
-                <p className="text-gray-500 font-medium">
-                  #{customer.registrationNumber}
-                </p>
+                <h3 className="text-2xl font-bold text-gray-900">{customer.name}</h3>
+                <p className="text-gray-500 font-medium">#{customer.registrationNumber}</p>
                 <div className="flex items-center space-x-2 mt-2">
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${getStatusBadgeColor(
-                      customer.status
-                    )}`}
-                  >
+                  <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${getStatusBadgeColor(customer.status)}`}>
                     {customer.status}
                   </span>
                   <span
-                    className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${getLoyaltyBadgeColor(
-                      customer.loyaltyStatus
-                    )}`}
+                    className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${getLoyaltyBadgeColor(customer.loyaltyStatus)}`}
                   >
                     {customer.loyaltyStatus}
                   </span>
@@ -245,28 +229,20 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
                         <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                           <EnvelopeIcon className="w-4 h-4 text-blue-600" />
                         </div>
-                        <span className="text-gray-900 font-medium">
-                          {customer.email}
-                        </span>
+                        <span className="text-gray-900 font-medium">{customer.email}</span>
                       </div>
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                           <PhoneIcon className="w-4 h-4 text-green-600" />
                         </div>
-                        <span className="text-gray-900 font-medium">
-                          {customer.phone}
-                        </span>
+                        <span className="text-gray-900 font-medium">{customer.phone}</span>
                       </div>
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                           <CalendarIcon className="w-4 h-4 text-purple-600" />
                         </div>
                         <span className="text-gray-900 font-medium">
-                          {customer.dateOfBirth
-                            ? `${formatDate(
-                                customer.dateOfBirth
-                              )} (Age: ${calculateAge(customer.dateOfBirth)})`
-                            : "Not provided"}
+                          {customer.dateOfBirth ? `${formatDate(customer.dateOfBirth)} (Age: ${calculateAge(customer.dateOfBirth)})` : "Not provided"}
                         </span>
                       </div>
                       <div className="flex items-start space-x-3">
@@ -274,32 +250,17 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
                           <MapPinIcon className="w-4 h-4 text-orange-600" />
                         </div>
                         <div className="text-gray-900 font-medium">
-                          {customer.address?.street && (
-                            <div>{customer.address.street}</div>
-                          )}
-                          {(customer.address?.city ||
-                            customer.address?.state ||
-                            customer.address?.zipCode) && (
+                          {customer.address?.street && <div>{customer.address.street}</div>}
+                          {(customer.address?.city || customer.address?.state || customer.address?.zipCode) && (
                             <div>
                               {customer.address.city && customer.address.city}
-                              {customer.address.city &&
-                                customer.address.state &&
-                                ", "}
+                              {customer.address.city && customer.address.state && ", "}
                               {customer.address.state && customer.address.state}
-                              {customer.address.zipCode &&
-                                ` ${customer.address.zipCode}`}
+                              {customer.address.zipCode && ` ${customer.address.zipCode}`}
                             </div>
                           )}
-                          {customer.address?.country &&
-                            customer.address.country !== "USA" && (
-                              <div>{customer.address.country}</div>
-                            )}
-                          {!customer.address?.street &&
-                            !customer.address?.city && (
-                              <span className="text-gray-500">
-                                No address provided
-                              </span>
-                            )}
+                          {customer.address?.country && customer.address.country !== "USA" && <div>{customer.address.country}</div>}
+                          {!customer.address?.street && !customer.address?.city && <span className="text-gray-500">No address provided</span>}
                         </div>
                       </div>
                     </div>
@@ -313,36 +274,20 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-white/70 rounded-lg p-4 text-center">
-                        <div className="text-2xl font-bold text-blue-600">
-                          {customer.totalServicesCount || 0}
-                        </div>
-                        <div className="text-sm text-gray-600 font-medium">
-                          Total Services
-                        </div>
+                        <div className="text-2xl font-bold text-blue-600">{customer.totalServicesCount || 0}</div>
+                        <div className="text-sm text-gray-600 font-medium">Total Services</div>
                       </div>
                       <div className="bg-white/70 rounded-lg p-4 text-center">
-                        <div className="text-2xl font-bold text-green-600">
-                          {formatCurrency(customer.totalSpent || 0)}
-                        </div>
-                        <div className="text-sm text-gray-600 font-medium">
-                          Total Spent
-                        </div>
+                        <div className="text-2xl font-bold text-green-600">{formatCurrency(customer.totalSpent || 0)}</div>
+                        <div className="text-sm text-gray-600 font-medium">Total Spent</div>
                       </div>
                       <div className="bg-white/70 rounded-lg p-4 text-center">
-                        <div className="text-2xl font-bold text-purple-600">
-                          {customer.loyaltyPoints || 0}
-                        </div>
-                        <div className="text-sm text-gray-600 font-medium">
-                          Loyalty Points
-                        </div>
+                        <div className="text-2xl font-bold text-purple-600">{customer.loyaltyPoints || 0}</div>
+                        <div className="text-sm text-gray-600 font-medium">Loyalty Points</div>
                       </div>
                       <div className="bg-white/70 rounded-lg p-4 text-center">
-                        <div className="text-2xl font-bold text-orange-600">
-                          {customer.referralCount || 0}
-                        </div>
-                        <div className="text-sm text-gray-600 font-medium">
-                          Referrals Made
-                        </div>
+                        <div className="text-2xl font-bold text-orange-600">{customer.referralCount || 0}</div>
+                        <div className="text-sm text-gray-600 font-medium">Referrals Made</div>
                       </div>
                     </div>
 
@@ -350,16 +295,12 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
                       <div className="text-sm text-gray-600 space-y-1">
                         <div className="flex items-center justify-between">
                           <span>Customer since:</span>
-                          <span className="font-medium">
-                            {formatDate(customer.createdAt)}
-                          </span>
+                          <span className="font-medium">{formatDate(customer.createdAt)}</span>
                         </div>
                         {customer.lastServiceDate && (
                           <div className="flex items-center justify-between">
                             <span>Last service:</span>
-                            <span className="font-medium">
-                              {formatDate(customer.lastServiceDate)}
-                            </span>
+                            <span className="font-medium">{formatDate(customer.lastServiceDate)}</span>
                           </div>
                         )}
                       </div>
@@ -374,41 +315,31 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <h5 className="font-medium text-gray-900 mb-3">
-                          Preferred Services
-                        </h5>
+                        <h5 className="font-medium text-gray-900 mb-3">Preferred Services</h5>
                         {customer.preferences?.serviceTypes?.length > 0 ? (
                           <div className="flex flex-wrap gap-2">
-                            {customer.preferences.serviceTypes.map(
-                              (service, index) => (
-                                <span
-                                  key={index}
-                                  className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 border border-blue-200"
-                                >
-                                  {service}
-                                </span>
-                              )
-                            )}
+                            {customer.preferences.serviceTypes.map((service, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 border border-blue-200"
+                              >
+                                {service}
+                              </span>
+                            ))}
                           </div>
                         ) : (
-                          <span className="text-gray-500 text-sm">
-                            No preferences set
-                          </span>
+                          <span className="text-gray-500 text-sm">No preferences set</span>
                         )}
                       </div>
                       <div>
-                        <h5 className="font-medium text-gray-900 mb-3">
-                          Communication Method
-                        </h5>
+                        <h5 className="font-medium text-gray-900 mb-3">Communication Method</h5>
                         <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-gray-100 to-slate-100 text-gray-700 border border-gray-200">
                           {customer.preferences?.communicationMethod || "Email"}
                         </span>
                       </div>
                       {customer.preferences?.specialInstructions && (
                         <div className="md:col-span-2">
-                          <h5 className="font-medium text-gray-900 mb-3">
-                            Special Instructions
-                          </h5>
+                          <h5 className="font-medium text-gray-900 mb-3">Special Instructions</h5>
                           <p className="text-gray-700 text-sm bg-white/70 p-4 rounded-lg border border-gray-200">
                             {customer.preferences.specialInstructions}
                           </p>
@@ -420,28 +351,19 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
               )}
 
               {activeTab === "services" && (
-                <motion.div
-                  key="services"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                >
+                <motion.div key="services" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                   <div className="flex items-center justify-between mb-6">
                     <h4 className="text-lg font-semibold text-gray-900 flex items-center">
                       <ClockIcon className="w-5 h-5 mr-2 text-blue-500" />
                       Service History
                     </h4>
-                    <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
-                      {maintenanceRequests.length} total requests
-                    </span>
+                    <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">{maintenanceRequests.length} total requests</span>
                   </div>
 
                   {loading ? (
                     <div className="flex items-center justify-center py-12">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                      <span className="ml-3 text-gray-600 font-medium">
-                        Loading service history...
-                      </span>
+                      <span className="ml-3 text-gray-600 font-medium">Loading service history...</span>
                     </div>
                   ) : maintenanceRequests.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
@@ -451,42 +373,25 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
                   ) : (
                     <div className="space-y-4">
                       {maintenanceRequests.map((request) => (
-                        <div
-                          key={request._id}
-                          className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-all"
-                        >
+                        <div key={request._id} className="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-all">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center space-x-3">
-                              <h5 className="font-semibold text-gray-900">
-                                {request.serviceType}
-                              </h5>
+                              <h5 className="font-semibold text-gray-900">{request.serviceType}</h5>
                               <span
-                                className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${getStatusBadgeColor(
-                                  request.status
-                                )}`}
+                                className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${getStatusBadgeColor(request.status)}`}
                               >
                                 {request.status}
                               </span>
                             </div>
-                            <span className="text-sm text-gray-500 font-medium">
-                              {formatDate(request.createdAt)}
-                            </span>
+                            <span className="text-sm text-gray-500 font-medium">{formatDate(request.createdAt)}</span>
                           </div>
-                          <p className="text-gray-700 text-sm mb-3">
-                            {request.description}
-                          </p>
+                          <p className="text-gray-700 text-sm mb-3">{request.description}</p>
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-gray-600">
-                              Priority:{" "}
-                              <span className="font-medium">
-                                {request.priority}
-                              </span>
+                              Priority: <span className="font-medium">{request.priority}</span>
                             </span>
                             {request.estimatedCost && (
-                              <span className="text-green-600 font-semibold">
-                                Estimated:{" "}
-                                {formatCurrency(request.estimatedCost)}
-                              </span>
+                              <span className="text-green-600 font-semibold">Estimated: {formatCurrency(request.estimatedCost)}</span>
                             )}
                           </div>
                         </div>
@@ -510,16 +415,12 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
                       <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
                         <StarIcon className="w-5 h-5 text-yellow-600" />
                       </div>
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        Loyalty Program
-                      </h4>
+                      <h4 className="text-lg font-semibold text-gray-900">Loyalty Program</h4>
                     </div>
                     <div className="space-y-4">
                       <div className="bg-white/70 rounded-lg p-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">
-                            Current Status
-                          </span>
+                          <span className="text-sm text-gray-600">Current Status</span>
                           <span
                             className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${getLoyaltyBadgeColor(
                               customer.loyaltyStatus
@@ -531,19 +432,13 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
                       </div>
                       <div className="bg-white/70 rounded-lg p-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">
-                            Current Points
-                          </span>
-                          <span className="font-bold text-gray-900">
-                            {customer.loyaltyPoints || 0}
-                          </span>
+                          <span className="text-sm text-gray-600">Current Points</span>
+                          <span className="font-bold text-gray-900">{customer.loyaltyPoints || 0}</span>
                         </div>
                       </div>
                       <div className="bg-white/70 rounded-lg p-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">
-                            Points to Next Level
-                          </span>
+                          <span className="text-sm text-gray-600">Points to Next Level</span>
                           <span className="font-bold text-gray-900">
                             {customer.loyaltyStatus === "platinum"
                               ? "Max Level"
@@ -564,40 +459,26 @@ const CustomerDetails = ({ customer, onClose, onEdit }) => {
                       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                         <UsersIcon className="w-5 h-5 text-blue-600" />
                       </div>
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        Referral Program
-                      </h4>
+                      <h4 className="text-lg font-semibold text-gray-900">Referral Program</h4>
                     </div>
                     <div className="space-y-4">
                       <div className="bg-white/70 rounded-lg p-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">
-                            Total Referrals
-                          </span>
-                          <span className="font-bold text-gray-900">
-                            {customer.referralCount || 0}
-                          </span>
+                          <span className="text-sm text-gray-600">Total Referrals</span>
+                          <span className="font-bold text-gray-900">{customer.referralCount || 0}</span>
                         </div>
                       </div>
                       <div className="bg-white/70 rounded-lg p-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">
-                            Referral Discount Used
-                          </span>
-                          <span className="font-bold text-gray-900">
-                            {customer.referralDiscountUsed ? "Yes" : "No"}
-                          </span>
+                          <span className="text-sm text-gray-600">Referral Discount Used</span>
+                          <span className="font-bold text-gray-900">{customer.referralDiscountUsed ? "Yes" : "No"}</span>
                         </div>
                       </div>
                       {customer.referredBy && (
                         <div className="bg-white/70 rounded-lg p-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">
-                              Referred By
-                            </span>
-                            <span className="font-bold text-gray-900">
-                              {customer.referredBy}
-                            </span>
+                            <span className="text-sm text-gray-600">Referred By</span>
+                            <span className="font-bold text-gray-900">{customer.referredBy}</span>
                           </div>
                         </div>
                       )}

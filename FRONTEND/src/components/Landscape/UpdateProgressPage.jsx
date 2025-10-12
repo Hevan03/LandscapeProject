@@ -41,7 +41,7 @@ const UpdateProgressPage = () => {
           customerName: data.customerId.name,
           landscaperName: data.landscaperId.name,
         });
-      } catch (err) {
+      } catch {
         toast.error("Failed to fetch post details.");
         navigate(`/landscaperprogress/${id}`); // Go back if fetch fails
       } finally {
@@ -51,8 +51,7 @@ const UpdateProgressPage = () => {
     fetchPost();
   }, [id, navigate]);
 
-  const getImageUrl = (imagePath) =>
-    `http://localhost:5001/${imagePath.replace(/\\/g, "/")}`;
+  const getImageUrl = (imagePath) => `http://localhost:5001/${imagePath.replace(/\\/g, "/")}`;
 
   //Task Management Handlers
   const handleAddTask = () => {
@@ -70,9 +69,7 @@ const UpdateProgressPage = () => {
   };
 
   const handleToggleTask = (indexToToggle) => {
-    const updatedTasks = tasks.map((task, index) =>
-      index === indexToToggle ? { ...task, completed: !task.completed } : task
-    );
+    const updatedTasks = tasks.map((task, index) => (index === indexToToggle ? { ...task, completed: !task.completed } : task));
     setTasks(updatedTasks);
   };
 
@@ -119,25 +116,16 @@ const UpdateProgressPage = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        Loading form...
-      </div>
-    );
+    return <div className="flex justify-center items-center h-screen">Loading form...</div>;
   }
 
   return (
     <div className="bg-gray-100 min-h-screen pt-24 pb-12 px-4">
-      <form
-        onSubmit={handleFormSubmit}
-        className="max-w-3xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden"
-      >
+      <form onSubmit={handleFormSubmit} className="max-w-3xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
         {/* --- Header --- */}
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-3xl font-bold text-gray-900">{postName}</h1>
-          <p className="text-md text-gray-500 mt-1">
-            Update the details for this progress post.
-          </p>
+          <p className="text-md text-gray-500 mt-1">Update the details for this progress post.</p>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
             <div className="flex items-center">
               <TreePine size={16} className="mr-2 text-green-600" />
@@ -156,10 +144,7 @@ const UpdateProgressPage = () => {
 
         {/* --- Description --- */}
         <div className="p-6">
-          <label
-            htmlFor="description"
-            className="block text-lg font-semibold text-gray-800 mb-2"
-          >
+          <label htmlFor="description" className="block text-lg font-semibold text-gray-800 mb-2">
             Description
           </label>
           <textarea
@@ -173,16 +158,12 @@ const UpdateProgressPage = () => {
 
         {/* --- Image Management --- */}
         <div className="p-6 border-t">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Update Images
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Update Images</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white border">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="py-2 px-4 border-b text-left">
-                    Current Image
-                  </th>
+                  <th className="py-2 px-4 border-b text-left">Current Image</th>
                   <th className="py-2 px-4 border-b text-center">Action</th>
                 </tr>
               </thead>
@@ -190,11 +171,7 @@ const UpdateProgressPage = () => {
                 {images.map((image, index) => (
                   <tr key={index}>
                     <td className="py-2 px-4 border-b">
-                      <img
-                        src={image.preview}
-                        alt={`Upload preview ${index + 1}`}
-                        className="w-24 h-24 object-cover rounded"
-                      />
+                      <img src={image.preview} alt={`Upload preview ${index + 1}`} className="w-24 h-24 object-cover rounded" />
                     </td>
                     <td className="py-2 px-4 border-b text-center">
                       <input
@@ -246,11 +223,7 @@ const UpdateProgressPage = () => {
                       />
                     </td>
                     <td className="py-2 px-4 border-b text-center">
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteTask(index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
+                      <button type="button" onClick={() => handleDeleteTask(index)} className="text-red-500 hover:text-red-700">
                         <Trash2 size={20} />
                       </button>
                     </td>
@@ -267,11 +240,7 @@ const UpdateProgressPage = () => {
               placeholder="Enter new task name"
               className="flex-grow p-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-green-500"
             />
-            <button
-              type="button"
-              onClick={handleAddTask}
-              className="bg-gray-800 text-white p-2 rounded-r-md hover:bg-black flex items-center"
-            >
+            <button type="button" onClick={handleAddTask} className="bg-gray-800 text-white p-2 rounded-r-md hover:bg-black flex items-center">
               <Plus size={20} className="mr-1" /> Add Task
             </button>
           </div>

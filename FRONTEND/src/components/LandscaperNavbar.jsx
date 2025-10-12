@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Home, PlusSquare, Briefcase, Calendar, User, Menu, X, ChevronDown, Bell, Star, ShoppingBag } from "lucide-react";
 import AuthContext from "../context/AuthContext";
 
@@ -7,7 +7,6 @@ const LandscaperNavbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { user, logout } = useContext(AuthContext);
-  const location = useLocation();
   const [notesOpen, setNotesOpen] = useState(false);
   const [notes, setNotes] = useState([]);
 
@@ -183,12 +182,27 @@ const LandscaperNavbar = () => {
           >
             <nav className="pt-2 pb-4">
               <ul className="flex flex-col space-y-1">
-                <MobileNavItem to="/landscaper/home" icon={<Home size={18} />} label="Home" />
-                <MobileNavItem to="/create-landscape" icon={<PlusSquare size={18} />} label="Start New Project" />
-                <MobileNavItem to="/landscaper/projects" icon={<Briefcase size={18} />} label="My Projects" />
-                <MobileNavItem to="/shop" icon={<ShoppingBag size={18} />} label="Shop" />
-                <MobileNavItem to="/landscaper/appointments" icon={<Calendar size={18} />} label="My Appointments" />
-                <MobileNavItem to="/landscaper/account" icon={<User size={18} />} label="My Account" />
+                <MobileNavItem to="/landscaper/home" icon={<Home size={18} />} label="Home" onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavItem
+                  to="/create-landscape"
+                  icon={<PlusSquare size={18} />}
+                  label="Start New Project"
+                  onClick={() => setMobileMenuOpen(false)}
+                />
+                <MobileNavItem
+                  to="/landscaper/projects"
+                  icon={<Briefcase size={18} />}
+                  label="My Projects"
+                  onClick={() => setMobileMenuOpen(false)}
+                />
+                <MobileNavItem to="/shop" icon={<ShoppingBag size={18} />} label="Shop" onClick={() => setMobileMenuOpen(false)} />
+                <MobileNavItem
+                  to="/landscaper/appointments"
+                  icon={<Calendar size={18} />}
+                  label="My Appointments"
+                  onClick={() => setMobileMenuOpen(false)}
+                />
+                <MobileNavItem to="/landscaper/account" icon={<User size={18} />} label="My Account" onClick={() => setMobileMenuOpen(false)} />
               </ul>
             </nav>
 
@@ -221,7 +235,7 @@ const NavItem = ({ to, icon, label }) => (
 );
 
 // Mobile Navigation Item Component
-const MobileNavItem = ({ to, icon, label }) => (
+const MobileNavItem = ({ to, icon, label, onClick }) => (
   <li>
     <NavLink
       to={to}
@@ -230,7 +244,7 @@ const MobileNavItem = ({ to, icon, label }) => (
           isActive ? "bg-white/20 text-white font-medium" : "text-gray-100 hover:bg-white/10"
         }`
       }
-      onClick={() => setMobileMenuOpen(false)}
+      onClick={onClick}
     >
       <span className="mr-2">{icon}</span> {label}
     </NavLink>

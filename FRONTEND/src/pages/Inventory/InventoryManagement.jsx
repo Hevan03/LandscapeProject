@@ -1,6 +1,5 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { PlusCircleIcon } from "@heroicons/react/24/outline";
 
 const InventoryManagement = () => {
   const navigate = useNavigate();
@@ -47,9 +46,7 @@ const InventoryManagement = () => {
     },
   ];
 
-  const handleAddNew = () => {
-    navigate("/admin/addItemForm");
-  };
+  // Navigation is handled per-card click; no separate add-new handler used here
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white p-20">

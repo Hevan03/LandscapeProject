@@ -1,10 +1,10 @@
+import { motion } from "framer-motion";
 import React, { useState, useEffect, useContext } from "react";
 import { getLandscapesForLandscaper } from "../../api/landscapeApi";
 import ProjectCard from "../ProjectCard";
 import axios from "axios";
 import { Search, Loader2, AlertCircle, PlusCircle } from "lucide-react";
 import AuthContext from "../../context/AuthContext";
-import { motion } from "framer-motion";
 
 const LandscaperProjectsPage = () => {
   const [projects, setProjects] = useState([]);
@@ -21,7 +21,7 @@ const LandscaperProjectsPage = () => {
       setLoading(true);
       setError(null);
       const data = await getLandscapesForLandscaper(loggedInLandscaperId);
-      console.log("Fetched Projects Data:", data);
+
       setProjects(data);
     } catch (err) {
       console.error("Failed to fetch projects", err);
@@ -49,10 +49,7 @@ const LandscaperProjectsPage = () => {
   };
 
   const filteredProjects = projects.filter((project) => {
-    return (
-      project.name &&
-      project.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return project.name && project.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   if (loading) {
@@ -98,9 +95,7 @@ const LandscaperProjectsPage = () => {
             <h1 className="text-4xl font-bold mb-2 text-gray-800 text-left bg-clip-text text-transparent bg-gradient-to-r from-green-700 to-green-500">
               My Projects
             </h1>
-            <p className="text-gray-500">
-              Manage and track all your landscape projects
-            </p>
+            <p className="text-gray-500">Manage and track all your landscape projects</p>
           </div>
 
           {/* Search Section - Aligned to right */}
@@ -132,12 +127,8 @@ const LandscaperProjectsPage = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
               <PlusCircle className="h-8 w-8 text-green-600" />
             </div>
-            <p className="text-xl font-medium text-gray-700 mb-2">
-              You haven't created any projects yet
-            </p>
-            <p className="text-gray-500 mb-6">
-              Start by creating your first landscape project
-            </p>
+            <p className="text-xl font-medium text-gray-700 mb-2">You haven't created any projects yet</p>
+            <p className="text-gray-500 mb-6">Start by creating your first landscape project</p>
             <a
               href="/create-landscape"
               className="inline-block px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200"
@@ -149,13 +140,9 @@ const LandscaperProjectsPage = () => {
           <div className="text-center py-12 px-6 bg-gray-50 rounded-2xl shadow-sm border border-gray-100">
             <Search className="h-10 w-10 text-gray-300 mx-auto mb-4" />
             <p className="text-lg text-gray-500">
-              No projects found matching "
-              <span className="font-medium">{searchQuery}</span>"
+              No projects found matching "<span className="font-medium">{searchQuery}</span>"
             </p>
-            <button
-              onClick={() => setSearchQuery("")}
-              className="mt-4 text-green-500 hover:text-green-700 font-medium"
-            >
+            <button onClick={() => setSearchQuery("")} className="mt-4 text-green-500 hover:text-green-700 font-medium">
               Clear search
             </button>
           </div>
@@ -167,16 +154,8 @@ const LandscaperProjectsPage = () => {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
           >
             {filteredProjects.map((project, index) => (
-              <motion.div
-                key={project._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <ProjectCard
-                  project={project}
-                  onStatusUpdate={handleStatusUpdate}
-                />
+              <motion.div key={project._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}>
+                <ProjectCard project={project} onStatusUpdate={handleStatusUpdate} />
               </motion.div>
             ))}
           </motion.div>

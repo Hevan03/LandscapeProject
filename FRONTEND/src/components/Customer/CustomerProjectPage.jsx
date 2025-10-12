@@ -69,7 +69,6 @@ const CustomerProjectsPage = () => {
 
   // Handler for Pay Advance button
   const handlePayAdvance = async (project) => {
-    console.log("Initiating advance payment for project:", project);
     navigate("/paymentportal", {
       state: {
         amount: project.blueprintRequested ? project.totalCost * 0.1 + 5000 : project.totalCost * 0.1,

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { getAllItems, deleteItem, createItem, updateItem } from "../../../api/itemApi";
-import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Link } from "react-router-dom";
@@ -17,7 +16,7 @@ const ModernInventoryDashboard = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // not used in this dashboard
 
   // Load items on mount
   useEffect(() => {
@@ -323,13 +322,13 @@ const ModernInventoryDashboard = () => {
                             fill="#8884d8"
                             dataKey="count"
                             labelLine={false}
-                            label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                           >
                             {categoryChartData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Pie>
-                          <RechartsTooltip formatter={(value, name) => [`${value} items`, name]} />
+                          <RechartsTooltip formatter={(value) => [`${value} items`, "Items"]} />
                           <Legend verticalAlign="bottom" height={36} />
                         </PieChart>
                       </ResponsiveContainer>

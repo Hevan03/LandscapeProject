@@ -357,7 +357,7 @@ const initialState = {
 
 const Register = () => {
   const [formData, setFormData] = useState(initialState);
-  const { register, loading, error, clearError } = useAuth();
+  const { loading, error, clearError } = useAuth();
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState({
@@ -400,7 +400,7 @@ const Register = () => {
       return;
     }
     // Prepare payload based on selected userType
-    const { confirmPassword, ...registerData } = formData;
+    const { confirmPassword: _confirmPassword, ...registerData } = formData;
 
     // Choose API endpoint based on userType
     let endpoint = "";

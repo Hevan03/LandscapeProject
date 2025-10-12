@@ -1,7 +1,7 @@
+import { motion } from "framer-motion";
 import React, { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRightIcon, StarIcon } from "@heroicons/react/24/outline";
-import { motion } from "framer-motion";
 import axios from "axios";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import AuthContext from "../../context/AuthContext";
@@ -51,7 +51,7 @@ const CustomerHomePage = () => {
 
   useEffect(() => {
     // Fetch landscapers from your API
-    console.log(user);
+
     const fetchLandscapers = async () => {
       try {
         setLoading(true);

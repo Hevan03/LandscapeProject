@@ -10,7 +10,6 @@ const AdminPaymentDashboard = () => {
   const [inventoryPayments, setInventoryPayments] = useState([]);
   const [servicePayments, setServicePayments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -26,7 +25,6 @@ const AdminPaymentDashboard = () => {
         setServicePayments(serviceRes.data);
       } catch (err) {
         console.error("Failed to fetch payment data:", err);
-        setError("Failed to load payment data. Please try again later.");
         toast.error("Failed to load payment data.");
       } finally {
         setLoading(false);

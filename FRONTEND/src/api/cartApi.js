@@ -13,7 +13,8 @@ export const getSessionId = () => {
   return sessionId;
 };
 
-const sessionId = getSessionId();
+// Ensure sessionId is initialized in localStorage for anonymous carts
+getSessionId();
 
 export const getCart = (customerId) => API.get(`/cart/${customerId}`);
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../../context/AuthContext";
-import axios from "axios";
 import { PlusSquare, Briefcase, Calendar, Leaf, Users, CheckCircle } from "lucide-react";
 
 //Component for Action Buttons

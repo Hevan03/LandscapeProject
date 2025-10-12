@@ -5,7 +5,7 @@ import imageurl from "../../public/image.jpg";
 import axios from "axios";
 
 const LandingPage = () => {
-  const fadeIn = {
+  const _fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
   };

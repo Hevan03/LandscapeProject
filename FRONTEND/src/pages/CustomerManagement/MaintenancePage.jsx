@@ -140,7 +140,7 @@ const MaintenancePage = () => {
       };
       api
         .put("/maintenance/me/profile", payload)
-        .then((res) => {
+        .then(() => {
           toast.success("Profile updated successfully");
           setIsEditing(false);
         })
@@ -184,7 +184,7 @@ const MaintenancePage = () => {
     try {
       const res = await api.get("/maintenance/customer/hires");
       setMyHires(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
+    } catch {
       // Not a customer or endpoint error; ignore quietly
     }
   };
@@ -224,7 +224,7 @@ const MaintenancePage = () => {
       try {
         const payRes = await api.get("/maintenance/me/payments");
         setPayments(Array.isArray(payRes.data) ? payRes.data : []);
-      } catch (e) {
+      } catch {
         // ignore if not maintenance or endpoint fails
       }
     } catch (err) {

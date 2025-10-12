@@ -33,7 +33,7 @@ const CustomerProjectCard = ({ project, onUpdate, onPayAdvance }) => {
         await requestBlueprint(project._id);
         toast.success("Blueprint requested! Your landscaper has been notified.");
         onUpdate();
-      } catch (error) {
+      } catch {
         toast.error("Failed to request blueprint.");
       }
     }

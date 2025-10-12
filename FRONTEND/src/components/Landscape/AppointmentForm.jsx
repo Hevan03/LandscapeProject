@@ -189,7 +189,7 @@ const AppointmentForm = ({ existingAppointment = null }) => {
         navigate("/customerdashboard");
       } else {
         const response = await createAppointment(submissionData);
-        console.log("Appointment created:", response.data);
+
         const appointmentId = response.data._id;
         navigate("/paymentportal", {
           state: {
