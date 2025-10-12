@@ -1,0 +1,139 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
+
+const MaintenanceWorkerDashboard = () => {
+  const { api, user } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const [hires, setHires] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAll = async () => {
+    try {
+      setLoading(true);
+      const [pRes, hRes, payRes] = await Promise.all([
+        api.get("/maintenance/me/profile"),
+        api.get("/maintenance/me/hires"),
+        api.get("/maintenance/me/payments").catch(() => ({ data: [] })),
+      ]);
+      setProfile(pRes.data);
+      setHires(Array.isArray(hRes.data) ? hRes.data : []);
+      setPayments(Array.isArray(payRes.data) ? payRes.data : []);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const respond = async (hireId, action) => {
+    try {
+      await api.put(`/maintenance/me/hires/${hireId}/respond`, { action });
+      toast.success(action);
+      fetchAll();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update request");
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    fetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  if (loading) return <div className="p-6">Loading...</div>;
+
+  return (
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Profile */}
+      <div className="bg-white rounded shadow">
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold">My Profile</h2>
+        </div>
+        <div className="p-4">
+          <div className="font-medium">{profile?.name}</div>
+          <div className="text-gray-600 text-sm">{profile?.email}</div>
+          <div className="text-gray-600 text-sm">{profile?.phone}</div>
+          <div className="mt-2 text-sm">Specialization: {profile?.specialization}</div>
+          {profile?.skills?.length ? (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {profile.skills.map((s) => (
+                <span className="px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded-full" key={s}>
+                  {s}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      {/* Hire Requests */}
+      <div className="bg-white rounded shadow">
+        <div className="p-4 border-b flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Hire Requests</h2>
+        </div>
+        <div className="p-4 space-y-3">
+          {hires.length === 0 ? (
+            <div className="text-gray-600">No hire requests yet.</div>
+          ) : (
+            hires.map((h) => (
+              <div key={h._id} className="border rounded p-4 flex items-center justify-between">
+                <div>
+                  <div className="font-medium">Customer: {h.customer?.name || "-"}</div>
+                  <div className="text-sm text-gray-600">
+                    {h.scheduledDate ? new Date(h.scheduledDate).toLocaleDateString() : "-"} • {h.scheduledTime || "-"}
+                  </div>
+                  <div className="text-sm">
+                    Status: <span className="capitalize">{h.status}</span>
+                  </div>
+                  {h.address && <div className="text-sm">Address: {h.address}</div>}
+                  {h.description && <div className="text-sm">Desc: {h.description}</div>}
+                </div>
+                <div className="flex gap-2">
+                  {h.status === "pending" && (
+                    <>
+                      <button onClick={() => respond(h._id, "accept")} className="px-3 py-1 bg-green-600 text-white rounded">
+                        Accept
+                      </button>
+                      <button onClick={() => respond(h._id, "reject")} className="px-3 py-1 bg-red-100 text-red-700 rounded">
+                        Reject
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Payments */}
+      <div className="bg-white rounded shadow">
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold">My Payments</h2>
+        </div>
+        <div className="p-4 space-y-2">
+          {payments.length === 0 ? (
+            <div className="text-gray-600">No payments yet.</div>
+          ) : (
+            payments.map((p) => (
+              <div key={p._id} className="flex items-center justify-between border rounded p-3">
+                <div>
+                  <div className="font-medium">LKR {Number(p.amount || 0).toLocaleString()}</div>
+                  <div className="text-sm text-gray-600">Method: {p.method}</div>
+                </div>
+                <div className="text-sm">{new Date(p.createdAt || p.paymentDate || Date.now()).toLocaleString()}</div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MaintenanceWorkerDashboard;

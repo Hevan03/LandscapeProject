@@ -1,4 +1,5 @@
 import Order from "../../Models/payment/orderModel.js";
+import Item from "../../Models/inventory/itemModel.js";
 
 // Get pending orders
 export const getPendingOrders = async (req, res) => {
@@ -175,5 +176,39 @@ export const getOrdersByCustomerId = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to fetch orders by customer", error: error.message });
+  }
+};
+
+// Cancel a shop order and restock items
+export const cancelOrderAndRestock = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    if (order.status !== "Pending") {
+      return res.status(400).json({ message: "Only pending orders can be cancelled" });
+    }
+
+    // Restock each item quantity
+    for (const it of order.items) {
+      try {
+        await Item.findByIdAndUpdate(it.itemId, { $inc: { quantity: it.quantity } });
+      } catch (e) {
+        console.warn("Failed to restock item", it.itemId, e.message);
+      }
+    }
+
+    // Mark order as Cancelled and unpaid
+    order.status = "Pending"; // keep delivery pipeline consistent
+    order.paymentStatus = "unpaid";
+
+    // Optionally, delete the order entirely if business prefers
+    await Order.findByIdAndDelete(orderId);
+
+    return res.status(200).json({ message: "Order cancelled & items restocked." });
+  } catch (error) {
+    console.error("Error cancelling order:", error);
+    res.status(500).json({ message: "Failed to cancel order", error: error.message });
   }
 };

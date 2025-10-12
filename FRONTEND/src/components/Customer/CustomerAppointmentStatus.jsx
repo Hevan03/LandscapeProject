@@ -257,7 +257,7 @@ const CustomerAppointmentStatus = () => {
                 : "You don't have any cancelled appointments."}
             </p>
             <Link
-              to="/book"
+              to="/customer/book"
               className="mt-6 inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
             >
               <svg className="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -75,7 +75,7 @@ const CardPaymentForm = ({ amount, orderId, orderType, onSuccess }) => {
       const confirmData = await confirmRes.json();
       if (!confirmRes.ok) throw new Error(confirmData.message || "Payment confirmation failed");
 
-      toast.success("Payment successful!");
+      toast.success("Payment submitted and pending verification.");
       if (onSuccess) onSuccess(confirmData.paymentId || paymentIntent.id);
     } catch (error) {
       console.error("Payment error:", error);
@@ -202,7 +202,7 @@ const BankSlipUpload = ({ amount, orderId, orderType, onSuccess }) => {
       formData.append("method", "BankSlip");
       formData.append("bankSlip", file);
       formData.append("notes", notes);
-      formData.append("orderType", "order");
+      formData.append("orderType", orderType || "order");
       formData.append("referenceNumber", reference);
 
       const response = await fetch("http://localhost:5001/api/payment/bank-slip", {
@@ -407,11 +407,7 @@ const PaymentPortal = () => {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Payment Successful!</h2>
-          {paymentMethod === "bank" ? (
-            <p className="text-gray-600 mb-4">Your bank slip has been uploaded and is pending verification.</p>
-          ) : (
-            <p className="text-gray-600 mb-4">Your payment has been processed successfully.</p>
-          )}
+          <p className="text-gray-600 mb-4">Your payment has been submitted and is pending verification by admin.</p>
           <div className="bg-gray-50 p-4 rounded-md mb-6">
             <p className="text-sm text-gray-500">Reference ID: {paymentId}</p>
             <p className="text-sm text-gray-500">Amount: ${paymentDetails.amount.toFixed(2)}</p>

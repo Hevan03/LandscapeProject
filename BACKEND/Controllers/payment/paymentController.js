@@ -21,7 +21,9 @@ if (process.env.STRIPE_SECRET_KEY) {
 // Create a new payment
 export const createPayment = async (req, res) => {
   try {
-    const newPayment = new Payment(req.body);
+    // Always enforce initial status as pending for customer-submitted payments
+    const payload = { ...req.body, status: "pending" };
+    const newPayment = new Payment(payload);
     await newPayment.save();
     res.status(201).json(newPayment);
   } catch (error) {
@@ -124,24 +126,27 @@ export const createInventoryPayment = async (req, res) => {
       method,
       bankSlipUrl,
       notes,
+      status: "pending",
     });
 
     await newPayment.save();
 
-    // Update order status
+    // Update order status to pending verification instead of paid
     await Order.findByIdAndUpdate(orderId, {
-      paymentStatus: "paid",
-      status: "Paid",
+      paymentStatus: "pending_verification",
+      // keep delivery status as-is (default Pending), just attach paymentId for reference
       paymentId: newPayment._id,
     });
 
-    // Create notification for admin
+    // Create notification for admin indicating verification is required
     await Notification.create({
-      type: "payment_received",
+      type: "payment_pending_verification",
       audience: "admin",
       orderId,
       customerId,
-      message: `New payment received for Order #${orderId.toString().slice(-6)} - Amount: LKR ${amount.toLocaleString()}`,
+      message: `Bank/inventory payment submitted for Order #${orderId
+        .toString()
+        .slice(-6)} - Amount: LKR ${amount.toLocaleString()} (Pending verification)`,
     });
 
     res.status(201).json({
@@ -269,9 +274,8 @@ export const confirmPayment = async (req, res) => {
       if (!appointment) {
         return res.status(404).json({ message: "Appointment not found" });
       }
-
-      appointment.paymentStatus = "paid";
-      appointment.status = "confirmed";
+      // Keep appointment in Payment Pending until admin verifies
+      appointment.status = "Payment Pending";
       payment.amount = appointment.amount || 0;
 
       await appointment.save();
@@ -281,30 +285,32 @@ export const confirmPayment = async (req, res) => {
         return res.status(404).json({ message: "Order not found" });
       }
 
-      order.paymentStatus = "paid";
-      order.status = "Paid";
+      // Do not auto-approve; mark as pending verification
+      order.paymentStatus = "pending_verification";
       payment.amount = order.totalAmount || 0;
 
       await order.save();
     }
 
+    // Ensure payment remains pending until admin review
+    payment.status = "pending";
     await payment.save();
 
-    // Notify admin about received payment
+    // Notify admin that verification is required
     try {
       await Notification.create({
-        type: "payment_received",
+        type: "payment_pending_verification",
         audience: "admin",
         orderId,
         customerId: payment.customerId,
-        message: `New ${paymentMethod} payment received for Order #${orderId.toString().slice(-6)}`,
+        message: `New ${paymentMethod} payment submitted for Order #${orderId.toString().slice(-6)} - Pending verification`,
       });
     } catch (e) {
       console.warn("Failed to create admin payment notification:", e.message);
     }
 
     res.status(200).json({
-      message: "Payment confirmed successfully",
+      message: "Payment submitted successfully and is pending verification",
       paymentId: payment._id,
     });
   } catch (error) {
@@ -347,8 +353,8 @@ export const processBankSlip = async (req, res) => {
       if (!appointment) {
         return res.status(404).json({ message: "Appointment not found" });
       }
-
-      appointment.paymentStatus = "pending";
+      // Keep appointment in Payment Pending state (model has status only)
+      appointment.status = "Payment Pending";
       await appointment.save();
     } else if (orderType === "order") {
       const order = await Order.findById(orderId);
@@ -356,7 +362,8 @@ export const processBankSlip = async (req, res) => {
         return res.status(404).json({ message: "Order not found" });
       }
 
-      order.paymentStatus = "pending";
+      // Mark order payment status as pending verification
+      order.paymentStatus = "pending_verification";
       await order.save();
     }
 

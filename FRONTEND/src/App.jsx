@@ -38,7 +38,9 @@ import CustomerHomePage from "./pages/CustomerManagement/CustomerHomePage";
 import MaintanancePage from "./pages/CustomerManagement/MaintenancePage";
 import AdminMaintanancePage from "./pages/CustomerManagement/Admin/MaintenancePage";
 import AdminMaintenanceRequests from "./pages/CustomerManagement/AdminMaintenanceRequests";
+import CustomerMaintenance from "./pages/CustomerManagement/CustomerMaintenance";
 import CustomerAppointmentStatus from "./components/Customer/CustomerAppointmentStatus";
+import BookLandscaper from "./pages/CustomerManagement/BookLandscaper";
 
 // Payment & appointments
 
@@ -84,6 +86,7 @@ import Notifications from "./components/Notifications";
 //Staff
 import ApplicationPage from "./pages/Staff/ApplicationPage";
 import Employeerating from "./pages/Staff/EmployeeRatingPage";
+import MaintenanceWorkerDashboard from "./pages/Staff/MaintenanceWorkerDashboard";
 import RatingPage from "./pages/Staff/RatingsPage";
 
 //TEmp
@@ -139,6 +142,15 @@ export const App = () => {
         <Route path="/application" element={<ApplicationPage />} />
         <Route path="/driver/:id" element={<Employeerating />} />
         <Route
+          path="/customer/maintenance"
+          element={
+            <CustomerLayout>
+              <CustomerMaintenance />
+            </CustomerLayout>
+          }
+        />
+        <Route path="/maintenance/dashboard" element={<MaintenanceWorkerDashboard />} />
+        <Route
           path="/customerdashboard"
           element={
             <CustomerLayout>
@@ -151,6 +163,15 @@ export const App = () => {
           element={
             <CustomerLayout>
               <CustomerHomePage />
+            </CustomerLayout>
+          }
+        />
+
+        <Route
+          path="/customer/book"
+          element={
+            <CustomerLayout>
+              <BookLandscaper />
             </CustomerLayout>
           }
         />

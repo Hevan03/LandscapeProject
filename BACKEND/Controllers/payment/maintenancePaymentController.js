@@ -21,7 +21,8 @@ export const createMaintenancePayment = async (req, res) => {
       amount,
       method,
       notes,
-      status: "completed",
+      // Save as pending for admin verification
+      status: "pending",
       transactionId: `MPAY-${Date.now()}`,
     });
 

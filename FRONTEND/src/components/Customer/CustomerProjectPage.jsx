@@ -69,8 +69,7 @@ const CustomerProjectsPage = () => {
 
   // Handler for Pay Advance button
   const handlePayAdvance = async (project) => {
-    setProjectToUpdate(project);
-    console.log("Initiating advance payment for project:", projectToUpdate);
+    console.log("Initiating advance payment for project:", project);
     navigate("/paymentportal", {
       state: {
         amount: project.blueprintRequested ? project.totalCost * 0.1 + 5000 : project.totalCost * 0.1,
@@ -154,7 +153,7 @@ const CustomerProjectsPage = () => {
                 {filter === "all" ? "You don't have any landscape projects yet." : `You don't have any ${getFilterLabel(filter)} projects.`}
               </p>
               <Link
-                to="/book"
+                to="/customer/book"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-600 transition-all duration-300 shadow-lg"
               >
                 <PlusCircleIcon className="w-5 h-5" />

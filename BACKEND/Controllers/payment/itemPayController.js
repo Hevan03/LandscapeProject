@@ -128,24 +128,27 @@ export const createInventoryPayment = async (req, res) => {
       method,
       bankSlipUrl,
       notes,
+      status: "Pending",
     });
 
     await newPayment.save();
 
     if (!orderId.startsWith("507f1f77bcf86cd799439011")) {
       await Order.findByIdAndUpdate(orderId, {
-        paymentStatus: "paid",
-        status: "Paid",
+        paymentStatus: "pending_verification",
+        // keep delivery status unchanged; attach payment id only
         paymentId: newPayment._id,
       });
 
       if (Notification) {
         try {
           await Notification.create({
-            type: "payment_received",
+            type: "payment_pending_verification",
             orderId,
             customerId,
-            message: `New inventory payment received for Order #${orderId.toString().slice(-6)} - Amount: LKR ${amount.toLocaleString()}`,
+            message: `Inventory payment submitted for Order #${orderId
+              .toString()
+              .slice(-6)} - Amount: LKR ${amount.toLocaleString()} (Pending verification)`,
           });
         } catch (notifError) {
           console.error("Error creating notification:", notifError);

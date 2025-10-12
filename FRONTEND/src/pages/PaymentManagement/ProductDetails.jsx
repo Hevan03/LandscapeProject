@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import AuthContext from "../../context/AuthContext";
 import { getItemById } from "../../api/itemApi";
 import { createOrder } from "../../api/orderApi";
+import { createLandscaperRequest } from "../../api/requestApi";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -86,6 +87,20 @@ const ProductDetails = () => {
       const resp = await createOrder(payload);
       const createdOrder = resp?.data?.order;
       if (!createdOrder?._id) throw new Error("Order creation failed");
+
+      // Mirror order to landscaper requests so it appears in admin LandscapeInventory
+      try {
+        const lrPayload = {
+          projectId: "SHOP_ORDER",
+          landscaper: auth?.user?.name || "Landscaper",
+          items: payload.items.map((i) => ({ item: i.itemId, qty: i.quantity, price: i.totalPrice })),
+          total: payload.totalAmount,
+          orderRef: createdOrder._id,
+        };
+        await createLandscaperRequest(lrPayload);
+      } catch (e) {
+        console.warn("Failed to mirror order to landscaper-requests:", e?.message);
+      }
 
       navigate(`/paymentportal`, {
         state: {

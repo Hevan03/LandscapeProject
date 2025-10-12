@@ -8,6 +8,11 @@ const LandscaperNavbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { user, logout } = useContext(AuthContext);
   const location = useLocation();
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [notes, setNotes] = useState([]);
+
+  // Derive landscaper identifier for staff notifications (serviceNum preferred)
+  const serviceNum = user?.serviceNum || user?.Service_Num || user?.id || user?._id;
 
   // Handle scroll effect for adding shadow/background changes
   useEffect(() => {
@@ -18,6 +23,36 @@ const LandscaperNavbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Fetch landscaper notifications (staff notifications by serviceNum)
+  useEffect(() => {
+    if (!serviceNum) return;
+    let timer;
+    const fetchNotes = async () => {
+      try {
+        const res = await fetch(`http://localhost:5001/api/notifications/${serviceNum}`);
+        const data = await res.json();
+        setNotes(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error("Failed to load landscaper notifications", e);
+      }
+    };
+    fetchNotes();
+    timer = setInterval(fetchNotes, 30000);
+    return () => clearInterval(timer);
+  }, [serviceNum]);
+
+  const unreadCount = notes.filter((n) => !(n.isRead ?? n.read)).length;
+
+  const markNoteRead = async (id) => {
+    try {
+      // Staff route uses /api/notifications/read/:id
+      await fetch(`http://localhost:5001/api/notifications/read/${id}`, { method: "PUT" });
+      setNotes((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true, read: true } : n)));
+    } catch (e) {
+      console.error("Failed to mark landscaper notification as read", e);
+    }
+  };
 
   return (
     <header
@@ -51,7 +86,7 @@ const LandscaperNavbar = () => {
                   <NavItem to="/landscaper/home" icon={<Home size={18} />} label="Home" />
                   <NavItem to="/landscaper/create-landscape" icon={<PlusSquare size={18} />} label="New Project" />
                   <NavItem to="/landscaper/projects" icon={<Briefcase size={18} />} label="My Projects" />
-                  <NavItem to="/landscaper/rentals" icon={<ShoppingBag size={18} />} label="Rental Orders" />
+                  <NavItem to="/shop" icon={<ShoppingBag size={18} />} label="Shop" />
                   <NavItem to="/landscaper/appointments" icon={<Calendar size={18} />} label="Appointments" />
                 </ul>
               </nav>
@@ -60,10 +95,51 @@ const LandscaperNavbar = () => {
             {/* User Actions - Desktop */}
             <div className="hidden md:flex items-center space-x-3">
               {/* Notification Bell */}
-              <button className="p-2 rounded-full hover:bg-white/10 transition-colors relative">
-                <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
+              <div className="relative">
+                <button
+                  className="p-2 rounded-full hover:bg-white/10 transition-colors relative"
+                  onClick={() => setNotesOpen((o) => !o)}
+                  aria-label="Notifications"
+                >
+                  <Bell size={20} />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-red-500 text-[10px] leading-4 text-white rounded-full text-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+                {notesOpen && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50">
+                    <div className="px-4 py-3 border-b flex items-center justify-between">
+                      <div className="text-sm font-semibold">Notifications</div>
+                      <button className="text-xs text-gray-500 hover:text-gray-700" onClick={() => setNotesOpen(false)}>
+                        Close
+                      </button>
+                    </div>
+                    <div className="max-h-96 overflow-auto">
+                      {notes.length === 0 ? (
+                        <div className="p-4 text-sm text-gray-500">No notifications</div>
+                      ) : (
+                        notes.map((n) => (
+                          <div key={n._id} className={`px-4 py-3 text-sm border-b ${n.isRead ?? n.read ? "bg-white" : "bg-green-50"}`}>
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="font-medium text-gray-800">{n.message}</div>
+                                <div className="text-[11px] text-gray-500">{new Date(n.createdAt).toLocaleString()}</div>
+                              </div>
+                              {!(n.isRead ?? n.read) && (
+                                <button className="text-xs text-green-700 hover:underline" onClick={() => markNoteRead(n._id)}>
+                                  Mark read
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* User Profile Dropdown */}
               <div className="relative group">
@@ -110,7 +186,7 @@ const LandscaperNavbar = () => {
                 <MobileNavItem to="/landscaper/home" icon={<Home size={18} />} label="Home" />
                 <MobileNavItem to="/create-landscape" icon={<PlusSquare size={18} />} label="Start New Project" />
                 <MobileNavItem to="/landscaper/projects" icon={<Briefcase size={18} />} label="My Projects" />
-                <MobileNavItem to="/landscaper/rentals" icon={<ShoppingBag size={18} />} label="Rental Orders" />
+                <MobileNavItem to="/shop" icon={<ShoppingBag size={18} />} label="Shop" />
                 <MobileNavItem to="/landscaper/appointments" icon={<Calendar size={18} />} label="My Appointments" />
                 <MobileNavItem to="/landscaper/account" icon={<User size={18} />} label="My Account" />
               </ul>
