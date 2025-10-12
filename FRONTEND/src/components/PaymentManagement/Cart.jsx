@@ -6,9 +6,8 @@ import { createOrder } from "../../api/orderApi";
 import AuthContext from "../../context/AuthContext";
 
 const Cart = () => {
-  const user = useContext(AuthContext);
-  console.log("User from context:", user);
-  const customerId = user?.user.id;
+  const auth = useContext(AuthContext);
+  const customerId = auth?.user?._id || auth?.user?.id;
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -47,12 +46,17 @@ const Cart = () => {
 
   const handleCheckout = async () => {
     if (!customerId) {
-      toast.error("Please log in to place an order.");
+      toast.error("Please log in to continue.");
       return;
     }
 
     try {
-      await createOrder({
+      if (!cartItems || cartItems.length === 0) {
+        toast.error("Your cart is empty.");
+        return;
+      }
+      // 1) Create a pending order first
+      const resp = await createOrder({
         customerId,
         items: cartItems.map((item) => ({
           itemId: item.itemId,
@@ -64,11 +68,24 @@ const Cart = () => {
         })),
         totalAmount: calculateTotal(),
       });
-      toast.success("Order placed successfully! Redirecting to your orders.");
-      navigate(`/orders/${customerId}`);
+
+      const createdOrder = resp?.data?.order;
+      if (!createdOrder?._id) {
+        throw new Error("Order creation failed");
+      }
+
+      // 2) Redirect to payment portal; only after successful payment the order becomes 'Paid'
+      navigate(`/paymentportal`, {
+        state: {
+          amount: calculateTotal(),
+          orderId: createdOrder._id,
+          orderType: "order",
+          returnUrl: `/orders/${customerId}`,
+        },
+      });
     } catch (err) {
       console.error("Error creating order:", err);
-      toast.error("Failed to place your order. Please try again.");
+      toast.error("Failed to initiate checkout. Please try again.");
     }
   };
 

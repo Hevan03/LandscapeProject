@@ -391,8 +391,6 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("password :", formData.password);
-    console.log("Confirm password :", formData.confirmPassword);
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match");
       return;
@@ -404,12 +402,11 @@ const Register = () => {
     // Prepare payload based on selected userType
     const { confirmPassword, ...registerData } = formData;
 
-    console.log("Registering with data:", registerData);
     // Choose API endpoint based on userType
     let endpoint = "";
     switch (formData.userType) {
       case "customer":
-        endpoint = "/customer/register";
+        endpoint = "/customers/register";
         break;
       case "driver":
         endpoint = "/staff/driver/register";
@@ -445,7 +442,6 @@ const Register = () => {
         body: JSON.stringify(registerData),
       });
       const result = await res.json();
-      console.log("Registration response:", result);
       if (result.success) {
         navigate("/login");
       } else {
@@ -477,7 +473,7 @@ const Register = () => {
           )}
 
           {/* User Type Selection */}
-          <div>
+          <div className="hidden">
             <label htmlFor="userType" className="block text-sm font-medium text-gray-700">
               Register as *
             </label>

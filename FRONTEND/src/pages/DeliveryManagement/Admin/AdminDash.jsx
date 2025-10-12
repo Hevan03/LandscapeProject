@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { BiDollarCircle, BiCar } from "react-icons/bi";
-import { BsTruck, BsGraphUp, BsCarFrontFill, BsFileText, BsClipboardCheck, BsBell } from "react-icons/bs";
-import { FaCreditCard, FaUserFriends } from "react-icons/fa";
-import { MdOutlineLocalShipping } from "react-icons/md";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { BsTruck, BsGraphUp, BsCarFrontFill, BsFileText, BsClipboardCheck } from "react-icons/bs";
+import { FaCreditCard, FaUserFriends, FaChartPie, FaRegChartBar } from "react-icons/fa";
+import { MdOutlineLocalShipping, MdDashboard } from "react-icons/md";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { Link } from "react-router-dom";
 import { getAllDrivers, getAllVehicles } from "../../../api/adminDashApi";
 import { getAssignedDeliveries, getOrdersForAssignment } from "../../../api/deliveryAssignApi";
 import { getCompletedOrders } from "../../../api/deliveryReportApi";
-import { getNotifications, markNotificationAsRead } from "../../../api/inventoryPaymentApi";
+// Removed notifications imports as per request
 
 const AdminDash = () => {
   const [drivers, setDrivers] = useState([]);
@@ -17,23 +17,18 @@ const AdminDash = () => {
   const [activeDeliveriesCount, setActiveDeliveriesCount] = useState(0);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const [completedOrdersCount, setCompletedOrdersCount] = useState(0);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  // Removed notification state
 
   useEffect(() => {
     const fetchDashData = async () => {
       try {
         setLoading(true);
-        const [driversRes, vehiclesRes, assignedRes, readyRes, completedRes, notificationsRes] = await Promise.all([
+        const [driversRes, vehiclesRes, assignedRes, readyRes, completedRes] = await Promise.all([
           getAllDrivers(),
           getAllVehicles(),
           getAssignedDeliveries(),
           getOrdersForAssignment(),
           getCompletedOrders(),
-          getNotifications().catch((error) => {
-            console.error("Failed to fetch notifications:", error);
-            return { data: [] };
-          }), // Handle notifications gracefully
         ]);
 
         setDrivers(driversRes.data || []);
@@ -47,12 +42,7 @@ const AdminDash = () => {
         setPendingOrdersCount((readyRes.data || []).length);
         setCompletedOrdersCount(completedRes.data.length);
 
-        // Handle notifications - show payment and accident notifications on dashboard
-        const allNotifications = notificationsRes.data || [];
-        const dashboardNotifications = allNotifications.filter((n) => n.type === "payment_received" || n.type === "accident_reported");
-        setNotifications(dashboardNotifications);
-        const unreadCount = dashboardNotifications.filter((n) => !n.isRead).length;
-        setUnreadNotifications(unreadCount);
+        // Removed notifications usage
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
       } finally {
@@ -62,36 +52,15 @@ const AdminDash = () => {
 
     fetchDashData();
 
-    // Set up polling for notifications every 30 seconds
-    const interval = setInterval(fetchDashData, 30000);
-    return () => clearInterval(interval);
+    // Removed notifications polling
+    return () => {};
   }, []);
 
   // Calculate available drivers and vehicles
-  const availableDrivers = drivers.filter((d) => d.availability === "Available").length;
+  const availableDrivers = drivers.filter((d) => d.driveravailability === "Available").length;
   const availableVehicles = vehicles.filter((v) => v.status === "Available").length;
 
-  // Handle notification actions
-  const handleMarkAsRead = async (notificationId) => {
-    try {
-      await markNotificationAsRead(notificationId);
-      setNotifications((prev) => prev.map((n) => (n._id === notificationId ? { ...n, isRead: true } : n)));
-      setUnreadNotifications((prev) => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error("Failed to mark notification as read:", error);
-    }
-  };
-
-  const handleMarkAllAsRead = async () => {
-    try {
-      const unreadNotifications = notifications.filter((n) => !n.isRead);
-      await Promise.all(unreadNotifications.map((n) => markNotificationAsRead(n._id)));
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-      setUnreadNotifications(0);
-    } catch (error) {
-      console.error("Failed to mark all notifications as read:", error);
-    }
-  };
+  // Removed notification handlers
 
   // Create dynamic data for the Delivery Summary Pie Chart
   const deliveryData = [
@@ -107,325 +76,357 @@ const AdminDash = () => {
   ];
 
   return (
-    <div className="min-h-screen">
-      <div className="bg-gray-100 min-h-screen p-8 font-sans">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <div className="flex items-center space-x-3">
-            {unreadNotifications > 0 && (
-              <div className="flex items-center space-x-2">
-                <div className="badge badge-error badge-lg">{unreadNotifications} New</div>
-                <button onClick={handleMarkAllAsRead} className="btn btn-sm btn-outline">
-                  Mark All Read
-                </button>
-              </div>
-            )}
-            <Link to="/admin/notifications" className="btn btn-success btn-sm flex items-center">
-              <BsBell className="mr-2" />
-              {unreadNotifications > 0 && <span className="badge badge-error badge-sm ml-2">{unreadNotifications}</span>}
-            </Link>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-extrabold text-gray-800 mb-4">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-green-800">Delivery Admin Dashboard</span>
+          </h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">Manage deliveries, orders, vehicles and driver assignments all in one place</p>
         </div>
 
-        {/* Recent Notifications Section (Limited) */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4 flex items-center">
-            <BsBell className="mr-2 text-blue-600" />
-            Recent Notifications
-            {unreadNotifications > 0 && <span className="badge badge-error badge-sm ml-2">{unreadNotifications}</span>}
-          </h2>
-
-          {notifications.length > 0 ? (
-            <div className="space-y-3">
-              {notifications.slice(0, 3).map((notification) => (
+        {loading ? (
+          <div className="min-h-screen flex justify-center items-center bg-gradient-to-b from-gray-50 to-gray-100">
+            <div className="text-center">
+              <div className="relative">
+                <div className="h-24 w-24 rounded-full border-t-4 border-b-4 border-green-500 animate-spin"></div>
                 <div
-                  key={notification._id}
-                  className={`alert ${notification.isRead ? "alert-info" : "bg-green-100 border-green-300 text-green-800"} shadow-lg`}
-                >
-                  <div className="flex-1">
+                  className="h-16 w-16 absolute top-4 left-4 rounded-full border-t-4 border-green-300 animate-spin"
+                  style={{ animationDirection: "reverse" }}
+                ></div>
+              </div>
+              <p className="mt-6 text-lg font-medium text-gray-700">Loading dashboard data...</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Stats Overview */}
+            <div className="mb-10">
+              <h2 className="text-xl font-bold text-gray-800 mb-5 border-l-4 border-green-500 pl-3">Delivery Statistics</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                {/* Active Deliveries Card */}
+                <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transform transition-all duration-300 hover:shadow-lg hover:border-green-100">
+                  <div className="p-5">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold">{notification.message}</h3>
-                        <p className="text-sm opacity-70">{new Date(notification.createdAt).toLocaleString()}</p>
+                      <div className="flex-grow">
+                        <div className="flex items-center mb-3">
+                          <div className="bg-gradient-to-r from-green-400 to-green-500 p-2 rounded-lg mr-3">
+                            <BsTruck className="text-white text-xl" />
+                          </div>
+                          <h2 className="text-sm font-medium text-gray-600">Active Deliveries</h2>
+                        </div>
+                        <p className="text-3xl font-bold text-gray-800">{activeDeliveriesCount}</p>
+                        <p className="text-xs text-gray-500 mt-2">Currently In Transit</p>
                       </div>
-                      {!notification.isRead && (
-                        <button onClick={() => handleMarkAsRead(notification._id)} className="btn btn-sm btn-ghost">
-                          Mark as Read
-                        </button>
-                      )}
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-50 to-green-100 px-5 py-2 border-t border-green-100">
+                    <Link
+                      to="/DeliveryManagement/delivery-assign"
+                      className="text-xs font-medium text-green-700 hover:text-green-800 flex items-center"
+                    >
+                      View Deliveries{" "}
+                      <svg className="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Pending Orders Card */}
+                <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transform transition-all duration-300 hover:shadow-lg hover:border-yellow-100">
+                  <div className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-grow">
+                        <div className="flex items-center mb-3">
+                          <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-2 rounded-lg mr-3">
+                            <BsClipboardCheck className="text-white text-xl" />
+                          </div>
+                          <h2 className="text-sm font-medium text-gray-600">Pending Orders</h2>
+                        </div>
+                        <p className="text-3xl font-bold text-gray-800">{pendingOrdersCount}</p>
+                        <p className="text-xs text-gray-500 mt-2">Waiting for assignment</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 px-5 py-2 border-t border-yellow-100">
+                    <Link
+                      to="/DeliveryManagement/delivery-assign"
+                      className="text-xs font-medium text-yellow-700 hover:text-yellow-800 flex items-center"
+                    >
+                      Assign Orders{" "}
+                      <svg className="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Completed Orders Card */}
+                <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transform transition-all duration-300 hover:shadow-lg hover:border-blue-100">
+                  <div className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-grow">
+                        <div className="flex items-center mb-3">
+                          <div className="bg-gradient-to-r from-blue-400 to-blue-500 p-2 rounded-lg mr-3">
+                            <BsClipboardCheck className="text-white text-xl" />
+                          </div>
+                          <h2 className="text-sm font-medium text-gray-600">Completed Orders</h2>
+                        </div>
+                        <p className="text-3xl font-bold text-gray-800">{completedOrdersCount}</p>
+                        <p className="text-xs text-gray-500 mt-2">Successfully delivered</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-5 py-2 border-t border-blue-100">
+                    <Link
+                      to="/DeliveryManagement/delivery-reports"
+                      className="text-xs font-medium text-blue-700 hover:text-blue-800 flex items-center"
+                    >
+                      View Reports{" "}
+                      <svg className="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Available Drivers Card */}
+                <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transform transition-all duration-300 hover:shadow-lg hover:border-purple-100">
+                  <div className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-grow">
+                        <div className="flex items-center mb-3">
+                          <div className="bg-gradient-to-r from-purple-400 to-purple-500 p-2 rounded-lg mr-3">
+                            <FaUserFriends className="text-white text-xl" />
+                          </div>
+                          <h2 className="text-sm font-medium text-gray-600">Available Drivers</h2>
+                        </div>
+                        <p className="text-3xl font-bold text-gray-800">{availableDrivers}</p>
+                        <p className="text-xs text-gray-500 mt-2">Ready for assignment</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-5 py-2 border-t border-purple-100">
+                    <Link to="/DeliveryManagement/driver" className="text-xs font-medium text-purple-700 hover:text-purple-800 flex items-center">
+                      Manage Drivers{" "}
+                      <svg className="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Available Vehicles Card */}
+                <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transform transition-all duration-300 hover:shadow-lg hover:border-indigo-100">
+                  <div className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-grow">
+                        <div className="flex items-center mb-3">
+                          <div className="bg-gradient-to-r from-indigo-400 to-indigo-500 p-2 rounded-lg mr-3">
+                            <BsCarFrontFill className="text-white text-xl" />
+                          </div>
+                          <h2 className="text-sm font-medium text-gray-600">Available Vehicles</h2>
+                        </div>
+                        <p className="text-3xl font-bold text-gray-800">{availableVehicles}</p>
+                        <p className="text-xs text-gray-500 mt-2">Ready for use</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 px-5 py-2 border-t border-indigo-100">
+                    <Link to="/admin/vehicles" className="text-xs font-medium text-indigo-700 hover:text-indigo-800 flex items-center">
+                      Manage Vehicles{" "}
+                      <svg className="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Navigation */}
+            <div className="mb-10">
+              <h2 className="text-xl font-bold text-gray-800 mb-5 border-l-4 border-green-500 pl-3">Quick Navigation</h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <Link
+                  to="/DeliveryManagement/delivery-assign"
+                  className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-lg hover:border-green-200 group"
+                >
+                  <div className="p-8 flex flex-col items-center">
+                    <div className="bg-gradient-to-br from-green-400 to-green-500 rounded-full p-4 mb-4 shadow-md group-hover:shadow-lg transform group-hover:scale-110 transition-all duration-300">
+                      <MdOutlineLocalShipping className="text-white text-3xl" />
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">Assign Deliveries</h3>
+                    <p className="text-sm text-gray-500 text-center">Assign orders to available drivers</p>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-50 to-green-100 px-4 py-3 border-t border-green-100">
+                    <span className="text-xs font-medium text-green-700 flex items-center justify-center">
+                      Manage Assignments
+                      <svg className="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
+                </Link>
+
+                <Link
+                  to="/DeliveryManagement/delivery-reports"
+                  className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-lg hover:border-blue-200 group"
+                >
+                  <div className="p-8 flex flex-col items-center">
+                    <div className="bg-gradient-to-br from-blue-400 to-blue-500 rounded-full p-4 mb-4 shadow-md group-hover:shadow-lg transform group-hover:scale-110 transition-all duration-300">
+                      <FaRegChartBar className="text-white text-3xl" />
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">Delivery Reports</h3>
+                    <p className="text-sm text-gray-500 text-center">View delivery performance metrics</p>
+                  </div>
+                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-4 py-3 border-t border-blue-100">
+                    <span className="text-xs font-medium text-blue-700 flex items-center justify-center">
+                      View Analytics
+                      <svg className="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
+                </Link>
+
+                <Link
+                  to="/DeliveryManagement/driver"
+                  className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-lg hover:border-purple-200 group"
+                >
+                  <div className="p-8 flex flex-col items-center">
+                    <div className="bg-gradient-to-br from-purple-400 to-purple-500 rounded-full p-4 mb-4 shadow-md group-hover:shadow-lg transform group-hover:scale-110 transition-all duration-300">
+                      <FaUserFriends className="text-white text-3xl" />
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">Driver Management</h3>
+                    <p className="text-sm text-gray-500 text-center">Manage driver details and status</p>
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 px-4 py-3 border-t border-purple-100">
+                    <span className="text-xs font-medium text-purple-700 flex items-center justify-center">
+                      Manage Drivers
+                      <svg className="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
+                </Link>
+
+                <Link
+                  to="/admin/vehicles"
+                  className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-lg hover:border-indigo-200 group"
+                >
+                  <div className="p-8 flex flex-col items-center">
+                    <div className="bg-gradient-to-br from-indigo-400 to-indigo-500 rounded-full p-4 mb-4 shadow-md group-hover:shadow-lg transform group-hover:scale-110 transition-all duration-300">
+                      <BsCarFrontFill className="text-white text-3xl" />
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">Vehicle Management</h3>
+                    <p className="text-sm text-gray-500 text-center">Track and maintain fleet vehicles</p>
+                  </div>
+                  <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 px-4 py-3 border-t border-indigo-100">
+                    <span className="text-xs font-medium text-indigo-700 flex items-center justify-center">
+                      Manage Fleet
+                      <svg className="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
+                </Link>
+
+                <Link
+                  to="/admin/accident-reports"
+                  className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-lg hover:border-red-200 group"
+                >
+                  <div className="p-8 flex flex-col items-center">
+                    <div className="bg-gradient-to-br from-red-400 to-red-500 rounded-full p-4 mb-4 shadow-md group-hover:shadow-lg transform group-hover:scale-110 transition-all duration-300">
+                      <BsFileText className="text-white text-3xl" />
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">Accident Reports</h3>
+                    <p className="text-sm text-gray-500 text-center">View and respond to accident reports</p>
+                  </div>
+                  <div className="bg-gradient-to-r from-red-50 to-red-100 px-4 py-3 border-t border-red-100">
+                    <span className="text-xs font-medium text-red-700 flex items-center justify-center">
+                      View Reports
+                      <svg className="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
+                </Link>
+              </div>
+            </div>
+
+            {/* Analytics Section */}
+            <div className="mb-10">
+              <h2 className="text-xl font-bold text-gray-800 mb-5 border-l-4 border-green-500 pl-3">Analytics Overview</h2>
+              <div className="grid grid-cols-1 gap-8">
+                {/* Delivery Summary Chart */}
+                <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 transform transition-all duration-300 hover:shadow-lg">
+                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200 px-6 py-4 flex justify-between items-center">
+                    <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                      <FaChartPie className="text-blue-600 mr-2" /> Delivery Summary
+                    </h3>
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full border border-blue-200 font-medium">
+                      Current Status
+                    </span>
+                  </div>
+                  <div className="p-6">
+                    <div className="flex flex-col md:flex-row items-center justify-center">
+                      <ResponsiveContainer width="100%" height={220}>
+                        <PieChart>
+                          <Pie
+                            data={deliveryData}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={80}
+                            innerRadius={60}
+                            fill="#8884d8"
+                            dataKey="value"
+                            labelLine={false}
+                            label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                          >
+                            {deliveryData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value, name) => [`${value} Orders`, name]} />
+                          <Legend verticalAlign="bottom" height={36} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="mt-6 md:mt-0 md:ml-8">
+                        <div className="space-y-3">
+                          <div className="flex items-center">
+                            <span className="w-4 h-4 rounded-full bg-yellow-500 mr-2 shadow-sm"></span>
+                            <span className="text-sm text-gray-600 font-medium">Pending Orders ({pendingOrdersCount})</span>
+                          </div>
+                          <div className="flex items-center">
+                            <span className="w-4 h-4 rounded-full bg-green-500 mr-2 shadow-sm"></span>
+                            <span className="text-sm text-gray-600 font-medium">In Transit ({activeDeliveriesCount})</span>
+                          </div>
+                          <div className="flex items-center">
+                            <span className="w-4 h-4 rounded-full bg-green-700 mr-2 shadow-sm"></span>
+                            <span className="text-sm text-gray-600 font-medium">Delivered ({completedOrdersCount})</span>
+                          </div>
+                        </div>
+                        <Link
+                          to="/DeliveryManagement/delivery-reports"
+                          className="inline-flex items-center text-sm font-medium bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 mt-6"
+                        >
+                          View Detailed Reports
+                          <svg className="ml-2 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="alert alert-info">
-              <BsBell className="mr-2" />
-              No notifications yet. You'll see payment notifications here when customers make payments.
-            </div>
-          )}
-
-          {notifications.length > 3 && (
-            <div className="text-center mt-4">
-              <Link to="/admin/notifications" className="btn btn-outline btn-sm">
-                View All Notifications ({notifications.length})
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Main Grid for Widgets */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Active Deliveries Card */}
-          <div className="card bg-white shadow-lg rounded-xl transition-transform transform hover:scale-105">
-            <div className="card-body p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-green-700 text-white rounded-full p-3 shadow-lg">
-                    <BsTruck size={24} />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-500">Active Deliveries</h2>
-                    <p className="text-3xl font-bold text-green-700 mt-1">{loading ? "..." : activeDeliveriesCount}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 text-sm text-gray-400">Currently In Transit</div>
-            </div>
-          </div>
-
-          {/* Pending Orders Card (New) */}
-          <div className="card bg-white shadow-lg rounded-xl transition-transform transform hover:scale-105">
-            <div className="card-body p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-yellow-500 text-white rounded-full p-3 shadow-lg">
-                    <BsClipboardCheck size={24} />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-500">Pending Orders</h2>
-                    <p className="text-3xl font-bold text-yellow-500 mt-1">{loading ? "..." : pendingOrdersCount}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 text-sm text-gray-400">Waiting for assignment</div>
-            </div>
-          </div>
-
-          {/* Completed Orders Card (New) */}
-          <div className="card bg-white shadow-lg rounded-xl transition-transform transform hover:scale-105">
-            <div className="card-body p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-blue-600 text-white rounded-full p-3 shadow-lg">
-                    <BsClipboardCheck size={24} />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-500">Completed Orders</h2>
-                    <p className="text-3xl font-bold text-blue-600 mt-1">{loading ? "..." : completedOrdersCount}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 text-sm text-gray-400">Successfully delivered</div>
-            </div>
-          </div>
-
-          {/* Available Drivers Card */}
-          <div className="card bg-white shadow-lg rounded-xl transition-transform transform hover:scale-105">
-            <div className="card-body p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-green-700 text-white rounded-full p-3 shadow-lg">
-                    <BiCar size={24} />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-500">Available Drivers</h2>
-                    <p className="text-3xl font-bold text-green-700 mt-1">{loading ? "..." : availableDrivers}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 text-sm text-gray-400">Ready for assignment</div>
-            </div>
-          </div>
-
-          {/* Available Vehicles Card */}
-          <div className="card bg-white shadow-lg rounded-xl transition-transform transform hover:scale-105">
-            <div className="card-body p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-green-700 text-white rounded-full p-3 shadow-lg">
-                    <BsGraphUp size={24} />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-500">Available Vehicles</h2>
-                    <p className="text-3xl font-bold text-green-700 mt-1">{loading ? "..." : availableVehicles}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 text-sm text-gray-400">Ready for use</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation Cards */}
-        <div className="divider text-gray-500 font-bold text-lg mb-6">Quick Navigation</div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
-          <Link to="/Orders/create" className="card bg-white shadow-xl rounded-xl transition-transform transform hover:scale-105 hover:shadow-2xl">
-            <div className="card-body flex items-center justify-center p-6">
-              <BsFileText size={48} className="text-green-700 mb-2" />
-              <p className="text-center font-semibold text-gray-700">Create Order</p>
-            </div>
-          </Link>
-          <Link
-            to="/DeliveryManagement/delivery-assign"
-            className="card bg-white shadow-xl rounded-xl transition-transform transform hover:scale-105 hover:shadow-2xl"
-          >
-            <div className="card-body flex items-center justify-center p-6">
-              <MdOutlineLocalShipping size={48} className="text-green-700 mb-2" />
-              <p className="text-center font-semibold text-gray-700">Assign Deliveries</p>
-            </div>
-          </Link>
-          <Link
-            to="/DeliveryManagement/delivery-reports"
-            className="card bg-white shadow-xl rounded-xl transition-transform transform hover:scale-105 hover:shadow-2xl"
-          >
-            <div className="card-body flex items-center justify-center p-6">
-              <BsClipboardCheck size={48} className="text-green-700 mb-2" />
-              <p className="text-center font-semibold text-gray-700">Delivery Reports</p>
-            </div>
-          </Link>
-          <Link
-            to="/DeliveryManagement/driver"
-            className="card bg-white shadow-xl rounded-xl transition-transform transform hover:scale-105 hover:shadow-2xl"
-          >
-            <div className="card-body flex items-center justify-center p-6">
-              <FaUserFriends size={48} className="text-green-700 mb-2" />
-              <p className="text-center font-semibold text-gray-700">Driver Management</p>
-            </div>
-          </Link>
-          <Link to="/admin/vehicles" className="card bg-white shadow-xl rounded-xl transition-transform transform hover:scale-105 hover:shadow-2xl">
-            <div className="card-body flex items-center justify-center p-6">
-              <BsCarFrontFill size={48} className="text-green-700 mb-2" />
-              <p className="text-center font-semibold text-gray-700">Vehicle Management</p>
-            </div>
-          </Link>
-          {/* <Link
-            to="/admin/AdminPaymentDashboard"
-            className="card bg-white shadow-xl rounded-xl transition-transform transform hover:scale-105 hover:shadow-2xl"
-          >
-            <div className="card-body flex items-center justify-center p-6">
-              <FaCreditCard size={48} className="text-green-700 mb-2" />
-              <p className="text-center font-semibold text-gray-700">Payments Manage</p>
-            </div>
-          </Link> */}
-          <Link
-            to="/admin/accident-reports"
-            className="card bg-white shadow-xl rounded-xl transition-transform transform hover:scale-105 hover:shadow-2xl"
-          >
-            <div className="card-body flex items-center justify-center p-6">
-              <BsFileText size={48} className="text-green-700 mb-2" />
-              <p className="text-center font-semibold text-gray-700">Accident Reports</p>
-            </div>
-          </Link>
-        </div>
-
-        {/* Charts and Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Payments Summary Chart */}
-          <div className="card bg-white shadow-lg rounded-xl">
-            <div className="card-body p-6">
-              <h2 className="card-title text-xl text-gray-700 mb-4">Payments Summary</h2>
-              <div className="flex flex-col md:flex-row items-center justify-center">
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={paymentsData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {paymentsData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-col mt-4 md:mt-0 md:ml-8">
-                  <div className="flex items-center mb-2">
-                    <span className="w-3 h-3 rounded-full bg-green-700 mr-2"></span>
-                    <span className="text-gray-600">Completed Payments</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
-                    <span className="text-gray-600">Pending Payments</span>
-                  </div>
-                </div>
-              </div>
-              <div className="card-actions justify-end mt-4">
-                <a
-                  href="/AdminPaymentDashboard"
-                  className="btn btn-sm text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-300 bg-gradient-to-r from-green-600 to-green-800 hover:from-green-700 hover:to-green-900"
-                >
-                  View History
-                </a>
               </div>
             </div>
-          </div>
-
-          {/* Delivery Summary Chart */}
-          <div className="card bg-white shadow-lg rounded-xl">
-            <div className="card-body p-6">
-              <h2 className="card-title text-xl text-gray-700 mb-4">Delivery Summary</h2>
-              <div className="flex flex-col md:flex-row items-center justify-center">
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={deliveryData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {deliveryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-col mt-4 md:mt-0 md:ml-8">
-                  <div className="flex items-center mb-2">
-                    <span className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></span>
-                    <span className="text-gray-600">Pending</span>
-                  </div>
-                  <div className="flex items-center mb-2">
-                    <span className="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
-                    <span className="text-gray-600">In Transit</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-3 h-3 rounded-full bg-green-700 mr-2"></span>
-                    <span className="text-gray-600">Delivered</span>
-                  </div>
-                </div>
-              </div>
-              <div className="card-actions justify-end mt-4">
-                <a
-                  href="/DeliveryManagement/delivery-assign"
-                  className="btn btn-sm text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-300 bg-gradient-to-r from-green-600 to-green-800 hover:from-green-700 hover:to-green-900"
-                >
-                  Assign Deliveries
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

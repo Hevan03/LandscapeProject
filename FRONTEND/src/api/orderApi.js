@@ -1,18 +1,12 @@
 import axios from "axios";
-import { getSessionId } from "./cartApi";
 
 const API = axios.create({
   baseURL: "http://localhost:5001/api",
 });
 
-// This function will send cart data to the new order backend
-export const createOrder = (customerId) => {
-  // We get the sessionId from the localStorage here
-  const currentSessionId = getSessionId();
-  return API.post(`/orders/create`, {
-    sessionId: currentSessionId,
-    customerId,
-  });
+// Create an order with explicit payload
+export const createOrder = (payload) => {
+  return API.post(`/orders/create`, payload);
 };
 
 // This function will fetch all orders for a specific customer
@@ -27,7 +21,7 @@ export const cancelOrder = (orderId) => {
 
 // Update shop order status
 export const updateOrderStatusAPI = (orderId, status) => {
-  return API.put(`/orders/${orderId}/status`, { status });
+  return API.patch(`/orders/${orderId}/status`, { status });
 };
 
 export const getRentalOrdersByCustomer = (customerId) => {

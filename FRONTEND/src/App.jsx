@@ -27,6 +27,7 @@ import CreateLandscapePage from "./pages/Landscape/CreateLandscapePage";
 import LandscaperProjectsPage from "./components/Landscape/LandscaperProjectsPage";
 import LandscaperProfilePage from "./pages/Landscape/LandscaperProfilePage";
 import AppointmentForm from "./components/Landscape/AppointmentForm";
+import LandscaperRentalOrders from "./pages/Landscape/LandscaperRentalOrders";
 
 // Customer (adjusted paths)
 import CustomerProgressPage from "./components/Customer/CustomerProgressPage";
@@ -35,6 +36,8 @@ import CustomerProjectsPage from "./components/Customer/CustomerProjectPage";
 import CustomerDashboard from "./pages/CustomerManagement/CustomerDashboard";
 import CustomerHomePage from "./pages/CustomerManagement/CustomerHomePage";
 import MaintanancePage from "./pages/CustomerManagement/MaintenancePage";
+import AdminMaintanancePage from "./pages/CustomerManagement/Admin/MaintenancePage";
+import AdminMaintenanceRequests from "./pages/CustomerManagement/AdminMaintenanceRequests";
 import CustomerAppointmentStatus from "./components/Customer/CustomerAppointmentStatus";
 
 // Payment & appointments
@@ -42,9 +45,11 @@ import CustomerAppointmentStatus from "./components/Customer/CustomerAppointment
 import PaymentPortal from "./pages/PaymentManagement/PaymentPortal";
 import ServicePayments from "./components/PaymentManagement/ServicePayments";
 import InventoryPayments from "./components/PaymentManagement/InventoryPayments";
-import AdminPaymentDashboard from "./pages/PaymentManagement/Admin/AdminPaymentDashboard";
+import AdminPaymentDashboard from "./pages/PaymentManagement/Admin/ModernAdminPaymentDashboard";
+// import AdminPaymentDashboard from "./pages/PaymentManagement/Admin/AdminPaymentDashboard";
 import ShopDashboard from "./pages/PaymentManagement/ShopDashboard";
 import Cart from "./components/PaymentManagement/Cart";
+import ProductDetails from "./pages/PaymentManagement/ProductDetails";
 
 // Delivery
 import AdminDash from "./pages/DeliveryManagement/Admin/AdminDash";
@@ -58,17 +63,19 @@ import AccidentReports from "./components/DeliveryManagement/AccidentReports";
 
 // Inventory
 import CreateOrder from "./pages/Inventory/CreateOrder";
-import InventoryDashboard from "./pages/Inventory/Admin/InventoryDashboard";
+import InventoryDashboard from "./pages/Inventory/Admin/ModernInventoryDashboard";
+// import InventoryDashboard from "./pages/Inventory/Admin/InventoryDashboard";
 import InventoryManagement from "./pages/Inventory/InventoryManagement";
 import UpdateItemForm from "./components/Inventory/UpdateItemForm";
 import ItemForm from "./components/Inventory/ItemForm";
-import MachineryInventory from "./components/Inventory/MachineryInventory";
+import MachineryInventory from "./components/Inventory/ModernMachineryInventory";
 import MachineryShop from "./components/Inventory/MachineryShop";
 import RequestForm from "./components/PaymentManagement/RequestForm";
 import ItemSelect from "./components/Inventory/ItemSelect";
 import Orders from "./components/PaymentManagement/Orders";
-import RentalInventoryOrders from "./components/Inventory/RentalInventoryOrders";
+import RentalInventoryOrders from "./components/Inventory/ModernRentalInventoryOrders";
 import ShopInventoryOrders from "./components/Inventory/ShopInventoryOrders";
+// import ShopInventoryOrders from "./components/Inventory/ShopInventoryOrders";
 import LandscapeInventory from "./components/Inventory/LandscapeInventory";
 
 // Navigation & misc
@@ -107,7 +114,7 @@ export const App = () => {
           <Route path="appointments" element={<LandscaperAppointments />} />
           <Route path="profile" element={<LandscaperProfilePage />} />
           <Route path="create-landscape" element={<CreateLandscapePage />} />
-          <Route path="shop" element={<ShopDashboard />} />
+          <Route path="rentals" element={<LandscaperRentalOrders />} />
         </Route>
         {/* customer routers */}
         {/* Driver Routes */}
@@ -118,6 +125,14 @@ export const App = () => {
         {/* inventory Routes */}
 
         <Route path="/cart" element={<Cart />} />
+        <Route
+          path="/product/:id"
+          element={
+            <CustomerLayout>
+              <ProductDetails />
+            </CustomerLayout>
+          }
+        />
         <Route path="/request" element={<RequestForm />} />
         <Route path="/selectitems" element={<ItemSelect />} />
         {/* Staff Routers */}
@@ -199,7 +214,8 @@ export const App = () => {
         <Route path="/admin" element={<AdminLayout />}>
           {/* customer */}
           <Route path="customer-dashboard" element={<CustomerManagement />} />
-          <Route path="maintanance" element={<MaintanancePage />} />
+          <Route path="maintanance" element={<AdminMaintanancePage />} />
+          <Route path="maintenance-requests" element={<AdminMaintenanceRequests />} />
 
           {/* delivery */}
           <Route path="driver-dashboard" element={<AdminDash />} />
@@ -211,11 +227,9 @@ export const App = () => {
           <Route path="inventory-dashboard" element={<InventoryManagement />} />
           <Route path="inventory" element={<InventoryDashboard />} />
           <Route path="machinery" element={<MachineryInventory />} />
-          <Route path="addItemForm" element={<ItemForm />} />
           <Route path="rentalInventoryOrders" element={<RentalInventoryOrders />} />
           <Route path="shopInventoryOrders" element={<ShopInventoryOrders />} />
           <Route path="landscapeInventory" element={<LandscapeInventory />} />
-          <Route path="update/:id" element={<UpdateItemForm />} />
 
           {/* Payment */}
           <Route path="payment-dashboard" element={<AdminPaymentDashboard />} />
@@ -226,6 +240,7 @@ export const App = () => {
         {/* --- CUSTOMER & GENERAL ROUTES (with general Navbar) --- */}
         <Route path="/customer/progress/:landscapeId" element={<CustomerProgressPage />} />
         <Route path="/customer/my-projects" element={<CustomerProjectsPage />} />
+        <Route path="/customer/maintanance" element={<MaintanancePage />} />
         <Route path="/book/:landscaperId" element={<AppointmentForm />} />
         <Route path="/payment" element={<PaymentPortal />} />
         <Route path="/DeliveryManagement/delivery-reports" element={<DeliveryReports />} />
@@ -238,8 +253,6 @@ export const App = () => {
         {/* Aliases (lowercase, hyphenated) for convenience */}
         <Route path="/payment-management/service" element={<ServicePayments />} />
         <Route path="/payment-management/inventory" element={<InventoryPayments />} />
-        <Route path="/AdminPaymentDashboard" element={<AdminPaymentDashboard />} />
-        <Route path="/Orders/create" element={<CreateOrder />} />
         {/* --- STANDALONE ROUTES (no shared navbar) --- */}
         <Route path="/addprogress/:landscapeId" element={<AddProgressPage />} />
         <Route path="/updateprogress/:id" element={<UpdateProgressPage />} />

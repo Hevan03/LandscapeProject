@@ -1,7 +1,7 @@
 // src/pages/InventoryDashboard.jsx
 
 import React, { useEffect, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { getAllItems, deleteItem } from "../../../api/itemApi";
 import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
@@ -100,9 +100,11 @@ const InventoryDashboard = () => {
 
   return (
     <>
-      <div className="min-h-screen p-6">
-        <Toaster position="top-right" reverseOrder={false} />
-        <h1 className="text-2xl font-bold mb-4">Inventory Dashboard</h1>
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Inventory Dashboard</h1>
+          <p className="text-gray-600 mt-1">Manage products, filter by category, and export reports.</p>
+        </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <button onClick={() => navigate("/admin/addItemForm")} className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-700">
@@ -137,11 +139,13 @@ const InventoryDashboard = () => {
         </div>
 
         {loading ? (
-          <p>Loading...</p>
+          <div className="flex justify-center items-center h-64">
+            <div className="w-12 h-12 rounded-full border-4 border-green-200 border-t-green-600 animate-spin"></div>
+          </div>
         ) : (
-          <table className="w-full border-collapse border border-gray-300">
+          <table className="w-full border-collapse border border-gray-200 shadow-sm ring-1 ring-gray-200 rounded-lg overflow-hidden">
             <thead>
-              <tr className="bg-gray-200">
+              <tr className="bg-gray-50">
                 <th className="border border-gray-300 p-2">Item</th>
                 <th className="border border-gray-300 p-2">Category</th>
                 <th className="border border-gray-300 p-2">Price</th>
@@ -170,14 +174,17 @@ const InventoryDashboard = () => {
                       )}
                     </td>
                     <td className="border border-gray-300 p-2">
-                      <div className="flex flex-col gap-2">
+                      <div className="inline-flex gap-2">
                         <button
                           onClick={() => navigate(`/admin/update/${item._id}`)}
-                          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-700 w-full"
+                          className="px-3 py-1.5 rounded-md border border-blue-300 text-blue-800 bg-blue-50 hover:bg-blue-100"
                         >
                           Update
                         </button>
-                        <button onClick={() => handleDelete(item._id)} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 w-full">
+                        <button
+                          onClick={() => handleDelete(item._id)}
+                          className="px-3 py-1.5 rounded-md border border-red-300 text-red-800 bg-red-50 hover:bg-red-100"
+                        >
                           Delete
                         </button>
                       </div>

@@ -11,6 +11,11 @@ const paymentSchema = new mongoose.Schema({
     ref: "Customer",
     required: true,
   },
+  maintenanceWorker: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "MaintenanceWorker",
+    required: false,
+  },
   amount: { type: Number, required: true },
   method: {
     type: String,

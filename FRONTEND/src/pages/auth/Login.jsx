@@ -50,22 +50,34 @@ const Login = () => {
 
     const result = await login(formData.email, formData.password);
     if (result.success) {
-      const user = result.data || result.user;
+      // `login` returns { success: true, data: { user, token } }
+      const payload = result.data || result.user || {};
+      const loggedUser = payload.user ? payload.user : payload;
+      const token = payload.token || result.token;
 
-      if (user.role === "driver") {
-        navigate("/driver-dashboard", { state: { driver: user } });
-      } else if (user.role === "landscaper") {
-        navigate("/landscaper/home", { state: { landscaper: user } });
-      } else if (user.role === "customer") {
-        navigate("/customer", { state: { customer: user } });
-      } else if (user.role === "management") {
-        navigate("/admin/driver-dashboard", { state: { management: user } });
-      } else if (user.role === "staff") {
-        navigate("/staff", { state: { staff: user } });
+      // Redirect maintenance workers to maintenance profile/dashboard
+      if (loggedUser.role === "maintenance") {
+        // persist cookie for compatibility
+        if (token) Cookies.set("token", token, { expires: 7 });
+        navigate("/admin/maintanance", { state: { maintenance: loggedUser } });
+        return;
+      }
+
+      if (loggedUser.role === "driver") {
+        navigate("/driver-dashboard", { state: { driver: loggedUser } });
+      } else if (loggedUser.role === "landscaper") {
+        navigate("/landscaper/home", { state: { landscaper: loggedUser } });
+      } else if (loggedUser.role === "customer") {
+        navigate("/customer", { state: { customer: loggedUser } });
+      } else if (loggedUser.role === "management") {
+        navigate("/admin/driver-dashboard", { state: { management: loggedUser } });
+      } else if (loggedUser.role === "staff") {
+        navigate("/staff", { state: { staff: loggedUser } });
       } else {
         navigate("/");
       }
-      Cookies.set("token", result.data.token, { expires: 7 });
+
+      if (token) Cookies.set("token", token, { expires: 7 });
     }
   };
 

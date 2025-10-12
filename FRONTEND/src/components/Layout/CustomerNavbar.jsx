@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useContext } from "react";
 import AuthContext from "../../context/AuthContext";
 import { Link, useLocation } from "react-router-dom";
+import { Bell } from "lucide-react";
 
 const CustomerNavbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
-  const userContext = useContext(AuthContext);
-  const { logout } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
+  const [customerNotes, setCustomerNotes] = useState([]);
+  const [notesOpen, setNotesOpen] = useState(false);
 
-  const userID = userContext.user?.id;
+  const userID = user?._id || user?.id;
 
   const isHomePage = location.pathname === "/customer"; // Add this line
 
@@ -21,6 +23,33 @@ const CustomerNavbar = () => {
     { name: "My Appointments", to: "/appointmentstatus" },
     { name: "Ratings", to: "/ratings" },
   ];
+
+  // Fetch customer notifications
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        if (!userID) return;
+        const res = await fetch(`http://localhost:5001/api/customer/notifications/${userID}`);
+        const data = await res.json();
+        setCustomerNotes(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error("Failed to load customer notifications", e);
+      }
+    };
+    fetchNotes();
+    const t = setInterval(fetchNotes, 30000);
+    return () => clearInterval(t);
+  }, [userID]);
+
+  const unreadCount = customerNotes.filter((n) => !n.isRead).length;
+  const markNoteRead = async (id) => {
+    try {
+      await fetch(`http://localhost:5001/api/customer/notifications/read/${id}`, { method: "PUT" });
+      setCustomerNotes((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)));
+    } catch (e) {
+      console.error("Failed to mark as read", e);
+    }
+  };
 
   return (
     <nav
@@ -53,13 +82,59 @@ const CustomerNavbar = () => {
                 </Link>
               ))}
 
+              {/* Notifications bell (left of Logout) */}
+              <div className="relative">
+                <button
+                  className="relative inline-flex items-center justify-center w-9 h-9 rounded-full text-white hover:bg-white/10"
+                  onClick={() => setNotesOpen((o) => !o)}
+                  aria-label="Notifications"
+                  title="Notifications"
+                >
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{unreadCount}</span>
+                  )}
+                </button>
+                {notesOpen && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50">
+                    <div className="px-4 py-3 border-b flex items-center justify-between">
+                      <div className="text-sm font-semibold">Notifications</div>
+                      <button className="text-xs text-gray-500 hover:text-gray-700" onClick={() => setNotesOpen(false)}>
+                        Close
+                      </button>
+                    </div>
+                    <div className="max-h-96 overflow-auto">
+                      {customerNotes.length === 0 ? (
+                        <div className="p-4 text-sm text-gray-500">No notifications</div>
+                      ) : (
+                        customerNotes.map((n) => (
+                          <div key={n._id} className={`px-4 py-3 text-sm border-b ${n.isRead ? "bg-white" : "bg-green-50"}`}>
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="font-medium text-gray-800">{n.message}</div>
+                                <div className="text-[11px] text-gray-500">{new Date(n.createdAt).toLocaleString()}</div>
+                              </div>
+                              {!n.isRead && (
+                                <button className="text-xs text-green-700 hover:underline" onClick={() => markNoteRead(n._id)}>
+                                  Mark read
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Logout Button */}
-              <Link
-                to="/login"
+              <button
+                onClick={logout}
                 className="font-medium text-white border border-white rounded-full px-5 py-2 hover:bg-white hover:text-green-700 transition-all duration-200"
               >
                 Logout
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -102,13 +177,15 @@ const CustomerNavbar = () => {
           ))}
 
           {/* Logout Button in Mobile Menu */}
-          <Link
-            to="/login"
-            className="block mt-2 text-center px-3 py-2 rounded-full font-medium text-white border border-white hover:bg-white hover:text-green-700"
-            onClick={() => setMenuOpen(false)}
+          <button
+            onClick={() => {
+              setMenuOpen(false);
+              logout();
+            }}
+            className="block w-full mt-2 text-center px-3 py-2 rounded-full font-medium text-white border border-white hover:bg-white hover:text-green-700"
           >
             Logout
-          </Link>
+          </button>
         </div>
       </div>
     </nav>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import UpdateMachineryForm from "./UpdateMachineryForm";
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Download } from "lucide-react";
@@ -276,98 +276,106 @@ function MachineryInventory() {
   if (error) return <div className="flex justify-center items-center h-screen text-red-600">Error: {error}</div>;
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-6">
       {/* Header & Buttons */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Machinery Dashboard</h1>
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-            Back
-          </button>
-          <button onClick={handleAddMachinery} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-            Add Machinery
-          </button>
-          <button
-            onClick={generatePdfReport}
-            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            <Download size={18} />
-            Download Report
-          </button>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900">Machinery Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 rounded-md border border-green-300 text-green-800 bg-green-50 hover:bg-green-100"
+            >
+              Back
+            </button>
+            <button
+              onClick={handleAddMachinery}
+              className="px-4 py-2 rounded-md border border-emerald-300 text-emerald-800 bg-emerald-50 hover:bg-emerald-100"
+            >
+              Add Machinery
+            </button>
+            <button
+              onClick={generatePdfReport}
+              className="flex items-center gap-2 px-4 py-2 rounded-md border border-blue-300 text-blue-800 bg-blue-50 hover:bg-blue-100"
+            >
+              <Download size={18} />
+              Download Report
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Table */}
-      {machines.length === 0 ? (
-        <p className="text-center text-gray-500">No machinery found in the inventory.</p>
-      ) : (
-        <div className="overflow-x-auto shadow-md rounded-lg">
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="border border-gray-300 p-2">Image</th>
-                <th className="border border-gray-300 p-2">Name</th>
-                <th className="border border-gray-300 p-2">Category</th>
-                <th className="border border-gray-300 p-2">Description</th>
-                <th className="border border-gray-300 p-2">Price/Day</th>
-                <th className="border border-gray-300 p-2">Duration</th>
-                <th className="border border-gray-300 p-2">Penalty/Day</th>
-                <th className="border border-gray-300 p-2">Quantity</th>
-                <th className="border border-gray-300 p-2">Added Date</th>
-                <th className="border border-gray-300 p-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {machines.map((machine) => (
-                <tr key={machine._id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex flex-wrap">
-                      {machine.imageUrl.map((url, idx) => (
-                        <img
-                          key={idx}
-                          src={`http://localhost:5001${url}`}
-                          alt={`${machine.name} ${idx + 1}`}
-                          className="w-12 h-12 object-cover rounded-md mr-1 mb-1"
-                        />
-                      ))}
-                    </div>
-                  </td>
-                  <td className="border p-2">{machine.name}</td>
-                  <td className="border p-2">{machine.category}</td>
-                  <td className="border p-2">{machine.description}</td>
-                  <td className="border p-2">Rs.{machine.rentalPricePerDay}</td>
-                  <td className="border p-2">{machine.defaultDurationDays}</td>
-                  <td className="border p-2">Rs.{machine.penaltyPerDay}</td>
-                  <td className="border p-2">{machine.quantity}</td>
-                  <td className="border p-2">{new Date(machine.createdAt).toLocaleDateString()}</td>
-                  <td className="border p-2">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleUpdateClick(machine)}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
-                      >
-                        Update
-                      </button>
-                      <button
-                        onClick={() => handleDelete(machine._id)}
-                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
+        {/* Table */}
+        {machines.length === 0 ? (
+          <p className="text-center text-gray-500">No machinery found in the inventory.</p>
+        ) : (
+          <div className="overflow-x-auto shadow-sm ring-1 ring-gray-200 rounded-xl">
+            <table className="w-full border-collapse border border-gray-300">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="border border-gray-300 p-2">Image</th>
+                  <th className="border border-gray-300 p-2">Name</th>
+                  <th className="border border-gray-300 p-2">Category</th>
+                  <th className="border border-gray-300 p-2">Description</th>
+                  <th className="border border-gray-300 p-2">Price/Day</th>
+                  <th className="border border-gray-300 p-2">Duration</th>
+                  <th className="border border-gray-300 p-2">Penalty/Day</th>
+                  <th className="border border-gray-300 p-2">Quantity</th>
+                  <th className="border border-gray-300 p-2">Added Date</th>
+                  <th className="border border-gray-300 p-2">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {machines.map((machine) => (
+                  <tr key={machine._id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-wrap">
+                        {machine.imageUrl.map((url, idx) => (
+                          <img
+                            key={idx}
+                            src={`http://localhost:5001${url}`}
+                            alt={`${machine.name} ${idx + 1}`}
+                            className="w-12 h-12 object-cover rounded-md mr-1 mb-1"
+                          />
+                        ))}
+                      </div>
+                    </td>
+                    <td className="border p-2">{machine.name}</td>
+                    <td className="border p-2">{machine.category}</td>
+                    <td className="border p-2">{machine.description}</td>
+                    <td className="border p-2">Rs.{machine.rentalPricePerDay}</td>
+                    <td className="border p-2">{machine.defaultDurationDays}</td>
+                    <td className="border p-2">Rs.{machine.penaltyPerDay}</td>
+                    <td className="border p-2">{machine.quantity}</td>
+                    <td className="border p-2">{new Date(machine.createdAt).toLocaleDateString()}</td>
+                    <td className="border p-2">
+                      <div className="inline-flex gap-2">
+                        <button
+                          onClick={() => handleUpdateClick(machine)}
+                          className="px-3 py-1.5 rounded-md border border-blue-300 text-blue-800 bg-blue-50 hover:bg-blue-100"
+                        >
+                          Update
+                        </button>
+                        <button
+                          onClick={() => handleDelete(machine._id)}
+                          className="px-3 py-1.5 rounded-md border border-red-300 text-red-800 bg-red-50 hover:bg-red-100"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-      {/* Modals */}
-      {isFormOpen && <AddMachineryForm onAdd={handleAddSuccess} onClose={handleCloseForm} />}
-      {isUpdateFormOpen && selectedMachine && (
-        <UpdateMachineryForm initialData={selectedMachine} onUpdate={handleUpdateSuccess} onClose={handleCloseUpdateForm} />
-      )}
+        {/* Modals */}
+        {isFormOpen && <AddMachineryForm onAdd={handleAddSuccess} onClose={handleCloseForm} />}
+        {isUpdateFormOpen && selectedMachine && (
+          <UpdateMachineryForm initialData={selectedMachine} onUpdate={handleUpdateSuccess} onClose={handleCloseUpdateForm} />
+        )}
+      </div>
     </div>
   );
 }

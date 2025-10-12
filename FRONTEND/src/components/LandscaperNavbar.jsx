@@ -51,7 +51,7 @@ const LandscaperNavbar = () => {
                   <NavItem to="/landscaper/home" icon={<Home size={18} />} label="Home" />
                   <NavItem to="/landscaper/create-landscape" icon={<PlusSquare size={18} />} label="New Project" />
                   <NavItem to="/landscaper/projects" icon={<Briefcase size={18} />} label="My Projects" />
-                  <NavItem to="/landscaper/shop" icon={<ShoppingBag size={18} />} label="Shop" />
+                  <NavItem to="/landscaper/rentals" icon={<ShoppingBag size={18} />} label="Rental Orders" />
                   <NavItem to="/landscaper/appointments" icon={<Calendar size={18} />} label="Appointments" />
                 </ul>
               </nav>
@@ -110,6 +110,7 @@ const LandscaperNavbar = () => {
                 <MobileNavItem to="/landscaper/home" icon={<Home size={18} />} label="Home" />
                 <MobileNavItem to="/create-landscape" icon={<PlusSquare size={18} />} label="Start New Project" />
                 <MobileNavItem to="/landscaper/projects" icon={<Briefcase size={18} />} label="My Projects" />
+                <MobileNavItem to="/landscaper/rentals" icon={<ShoppingBag size={18} />} label="Rental Orders" />
                 <MobileNavItem to="/landscaper/appointments" icon={<Calendar size={18} />} label="My Appointments" />
                 <MobileNavItem to="/landscaper/account" icon={<User size={18} />} label="My Account" />
               </ul>

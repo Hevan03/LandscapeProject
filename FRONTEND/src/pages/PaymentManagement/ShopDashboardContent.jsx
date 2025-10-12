@@ -18,7 +18,6 @@ const ShopDashboard = () => {
   const [minMaxPrice, setMinMaxPrice] = useState([0, 10000]);
   const user = useContext(AuthContext);
 
-  console.log("Authenticated User:", user);
   const customerId = user?.user.id;
   const navigate = useNavigate();
 
@@ -80,7 +79,7 @@ const ShopDashboard = () => {
   };
 
   const handleBuyNow = (item) => {
-    toast(`Redirecting to checkout for ${item.itemname}...`, { icon: "🛒" });
+    navigate(`/product/${item._id}`);
   };
 
   const handleCartClick = () => {

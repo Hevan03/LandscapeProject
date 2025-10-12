@@ -1,38 +1,33 @@
+import e from "express";
 import Driver from "../../Models/delivery/driverModel.js";
 import { hashPassword } from "../../utils/authAndNotify.js";
 
 // Create a new driver
 export const createDriver = async (req, res) => {
   try {
-    const { name, email, contact, licenseNo, password, availability } =
-      req.body;
+    const { name, email, contact, licenseNo, password, availability } = req.body;
     if (!name || !email || !contact || !licenseNo || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields required." });
+      return res.status(400).json({ success: false, message: "All fields required." });
     }
     const exists = await Driver.findOne({ email });
     if (exists) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email already exists." });
+      return res.status(400).json({ success: false, message: "Email already exists." });
     }
     const passwordHash = await hashPassword(password);
     const driver = new Driver({
       name,
       email,
-      contact,
+      phone: contact,
       licenseNo,
       passwordHash,
-      availability,
+      driveravailability: availability,
     });
     await driver.save();
   } catch (error) {
     // Duplicate license number check
     if (error.code === 11000 && error.keyPattern?.licenseNo) {
       return res.status(400).json({
-        message:
-          "A driver with this license number already exists. Please use a unique license number.",
+        message: "A driver with this license number already exists. Please use a unique license number.",
       });
     }
     res.status(500).json({ success: false, message: error.message });
@@ -45,9 +40,7 @@ export const getAllDrivers = async (req, res) => {
     const drivers = await Driver.find();
     res.status(200).json(drivers);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong.", error: error.message });
+    res.status(500).json({ message: "Something went wrong.", error: error.message });
   }
 };
 
@@ -60,28 +53,27 @@ export const getDriverById = async (req, res) => {
     }
     res.status(200).json(driver);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong.", error: error.message });
+    res.status(500).json({ message: "Something went wrong.", error: error.message });
   }
 };
 
 // Update a driver
 export const updateDriver = async (req, res) => {
   try {
-    const updatedDriver = await Driver.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const payload = { ...req.body };
+    // Map potential legacy fields
+    if (payload.contact && !payload.phone) payload.phone = payload.contact;
+    if (payload.availability && !payload.driveravailability) payload.driveravailability = payload.availability;
+    console.log("Update payload:", payload);
+    delete payload.contact;
+    delete payload.availability;
+    const updatedDriver = await Driver.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
     if (!updatedDriver) {
-      return res.status(404).json({ message: "Driver not found." });
+      return res.status(404).json({ message: "Driver not found." + error });
     }
     res.status(200).json(updatedDriver);
   } catch (error) {
-    res
-      .status(400)
-      .json({ message: "Invalid data provided.", error: error.message });
+    res.status(400).json({ message: "Invalid data provided.", error: error.message });
   }
 };
 
@@ -94,16 +86,14 @@ export const deleteDriver = async (req, res) => {
     }
     res.status(200).json({ message: "Driver deleted successfully." });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong.", error: error.message });
+    res.status(500).json({ message: "Something went wrong.", error: error.message });
   }
 };
 
 // Get available drivers
 export const getAvailableDrivers = async (req, res) => {
   try {
-    const drivers = await Driver.find({ availability: "Available" });
+    const drivers = await Driver.find({ driveravailability: "Available" });
     res.status(200).json(drivers);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch available drivers" });

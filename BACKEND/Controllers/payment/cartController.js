@@ -113,3 +113,20 @@ export async function deleteCartItem(req, res) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
+
+// Clear entire cart for a customer
+export async function clearCart(req, res) {
+  const { customerId } = req.params;
+  try {
+    const cart = await Cart.findOne({ customerId });
+    if (!cart) {
+      return res.status(404).json({ message: "Cart not found." });
+    }
+    cart.items = [];
+    const updatedCart = await cart.save();
+    res.status(200).json(updatedCart);
+  } catch (err) {
+    console.error("Error clearing cart:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}

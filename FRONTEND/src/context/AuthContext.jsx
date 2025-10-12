@@ -17,7 +17,8 @@ const api = axios.create({
 
 // Add token to requests if available
 api.interceptors.request.use((config) => {
-  const token = Cookies.get("token");
+  // prefer token from localStorage (set by login), fallback to cookie for backwards compatibility
+  const token = localStorage.getItem("token") || Cookies.get("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -175,15 +176,26 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.post("/auth/login", { email, password });
       if (response.data.token) {
-        // Store token and user data
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+        // Normalize user object so it always contains id/_id
+        const token = response.data.token;
+        const rawUser = response.data.user || {};
+        const normalizedUser = {
+          ...rawUser,
+          id: rawUser.id ?? rawUser._id ?? rawUser.userId ?? rawUser.serviceNum ?? null,
+          _id: rawUser._id ?? rawUser.id ?? rawUser.userId ?? null,
+          role: rawUser.role ?? rawUser.userRole ?? rawUser.roleName ?? null,
+        };
+
+        // Store token and normalized user data
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(normalizedUser));
+
         dispatch({
           type: actionTypes.AUTH_SUCCESS,
-          payload: { user: response.data.user, token: response.data.token },
+          payload: { user: normalizedUser, token },
         });
         toast.success("Login successful! Welcome back!");
-        return { success: true, data: response.data.user };
+        return { success: true, data: { user: normalizedUser, token } };
       } else {
         dispatch({
           type: actionTypes.AUTH_FAILURE,

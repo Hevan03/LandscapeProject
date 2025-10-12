@@ -34,6 +34,7 @@ const testimonials = [
 const CustomerHomePage = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [landscapers, setLandscapers] = useState([]);
+  const [maintenanceWorkers, setMaintenanceWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedLandscaper, setSelectedLandscaper] = useState(null);
   const { user } = useContext(AuthContext);
@@ -58,12 +59,24 @@ const CustomerHomePage = () => {
         setLandscapers(response.data);
       } catch (error) {
         console.error("Failed to fetch landscapers:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchLandscapers();
+    const fetchMaintenanceWorkers = async () => {
+      try {
+        const response = await axios.get("http://localhost:5001/api/maintenance");
+        setMaintenanceWorkers(response.data);
+      } catch (error) {
+        console.error("Failed to fetch maintenance workers:", error);
+      }
+    };
+
+    const fetchAllData = async () => {
+      await Promise.all([fetchLandscapers(), fetchMaintenanceWorkers()]);
+      setLoading(false);
+    };
+
+    fetchAllData();
   }, []);
 
   return (
@@ -256,10 +269,10 @@ const CustomerHomePage = () => {
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.4 }}
-                      className="flex-shrink-0 w-72 bg-white rounded-xl shadow-lg border border-green-100 overflow-hidden group hover:shadow-xl transition-all duration-300"
+                      className="flex-shrink-0 w-72 bg-white rounded-xl shadow-lg border border-green-100 overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col"
                       onClick={() => setSelectedLandscaper(landscaper)}
                     >
-                      <div className="h-40 bg-green-100 relative overflow-hidden">
+                      <div className="h-48 bg-green-100 relative overflow-hidden">
                         <img
                           src={
                             landscaper.image ||
@@ -270,8 +283,25 @@ const CustomerHomePage = () => {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                       </div>
-                      <div className="p-5">
-                        <h3 className="text-xl font-bold text-gray-800 mb-1">{landscaper.name}</h3>
+                      <div className="p-5 flex flex-col h-40">
+                        <h3 className="text-xl font-bold text-gray-800 mb-1 truncate">{landscaper.name}</h3>
+                        {/* Rating row */}
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="flex">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <span
+                                key={star}
+                                className={`${star <= Math.round(Number(landscaper.rating || 0)) ? "text-yellow-400" : "text-gray-300"}`}
+                              >
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                          <span className="text-sm text-gray-600">
+                            {Number(landscaper.rating || 0).toFixed(1)}
+                            {landscaper.ratingCount || landscaper.reviewsCount ? ` (${landscaper.ratingCount || landscaper.reviewsCount})` : ""}
+                          </span>
+                        </div>
                         <div className="mb-3 flex flex-wrap gap-1">
                           {landscaper.specialties &&
                             landscaper.specialties.slice(0, 3).map((specialty, idx) => (
@@ -285,7 +315,7 @@ const CustomerHomePage = () => {
                         </div>
                         <Link
                           to={`/book/${landscaper._id}`}
-                          className="block w-full py-2 text-center bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                          className="mt-auto block w-full py-2 text-center bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
                         >
                           Book Now
                         </Link>
@@ -343,6 +373,78 @@ const CustomerHomePage = () => {
                   </div>
                 </div>
               </motion.div>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* Quick Hire Maintenance Workers Section */}
+      <section className="py-20 px-20 bg-gray-50 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto relative">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl font-bold text-gray-800 mb-4">Hire Maintenance Experts</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Find skilled maintenance workers for your ongoing garden care and upkeep needs.</p>
+          </motion.div>
+
+          {loading ? (
+            <div className="flex justify-center">
+              <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <>
+              {/* Maintenance Worker Cards */}
+              <div className="overflow-x-auto pb-4">
+                <div className="flex space-x-6 px-4">
+                  {maintenanceWorkers.map((worker) => (
+                    <motion.div
+                      key={worker._id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4 }}
+                      className="flex-shrink-0 w-72 bg-white rounded-xl shadow-lg border border-green-100 overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col"
+                    >
+                      <div className="h-40 bg-green-100 relative overflow-hidden">
+                        <img
+                          src={
+                            worker.image ||
+                            "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                          }
+                          alt={worker.name}
+                          className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                      </div>
+                      <div className="p-5 flex flex-col h-full">
+                        <h3 className="text-xl font-bold text-gray-800 mb-1">{worker.name}</h3>
+                        <div className="mb-3 flex flex-wrap gap-1">
+                          {worker.skills &&
+                            worker.skills.slice(0, 3).map((skill, idx) => (
+                              <span key={idx} className="inline-block px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full">
+                                {skill}
+                              </span>
+                            ))}
+                          {worker.skills && worker.skills.length > 3 && (
+                            <span className="inline-block px-2 py-1 text-gray-500 text-xs">+{worker.skills.length - 3} more</span>
+                          )}
+                        </div>
+                        <Link
+                          to="/customer/maintanance"
+                          className="mt-auto block w-full py-2 text-center bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          Hire Now
+                        </Link>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </>
           )}
         </div>

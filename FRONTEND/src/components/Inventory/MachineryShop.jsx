@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import MachineryCard from "./MachineryCard";
 import MachineryDetailModal from "./MachineryDetailModal";
@@ -51,8 +51,6 @@ function MachineryShop() {
 
   return (
     <div className="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen  ">
-      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
-
       {/* Hero Section */}
       <div className=" text-green-700">
         <div className="container mx-auto px-4 py-8 md:py-10">

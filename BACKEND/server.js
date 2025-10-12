@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import landscapeRoute from "./Routes/landscape/landscapeRoute.js";
 import progressRoute from "./Routes/landscape/progressRoute.js";
 import customerRoute from "./Routes/customer/customerRoute.js";
+import maintenanceWorkerRoute from "./Routes/customer/maintenanceWorkerRoute.js";
 import landscaperRoute from "./Routes/landscape/landscaperRoute.js";
 import appointmentRoute from "./Routes/landscape/appointmentRoute.js";
 
@@ -24,6 +25,7 @@ import vehicleRoute from "./Routes/delivery/vehicleRoute.js";
 import deliveryAssignRoute from "./Routes/delivery/deliveryAssignRoute.js";
 import accidentReportRoute from "./Routes/delivery/accidentReportRoute.js";
 import deliveryReportRoute from "./Routes/delivery/deliveryReportRoute.js";
+import customerNotificationRoutes from "./Routes/landscape/customerNotificationRoutes.js";
 
 //Staff System Routes
 import employeeRoutes from "./Routes/staff/employeeServiceRoutes.js";
@@ -50,8 +52,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173", // your frontend URL
-    credentials: true, // allow cookies/auth headers
+    origin: ["http://localhost:5173", "http://localhost:5174"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
   })
 );
 
@@ -76,11 +79,21 @@ app.use("/api/staff", employeeRoutes); // Staff Registration
 app.use("/api/auth", authRoutes); // All Login Function router
 app.use("/api/rating", ratingRoutes);
 
+// Debug route (protected) - returns decoded token payload for debugging
+import { authMiddleware } from "./middleware/auth.js";
+const debugRouter = express.Router();
+debugRouter.get("/me", authMiddleware, (req, res) => {
+  res.json({ user: req.user });
+});
+app.use("/api/debug", debugRouter);
+
 //Customer router
 app.use("/api/customers", customerRoute);
+app.use("/api/maintenance", maintenanceWorkerRoute);
 
 //Delivery Routers
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/customer/notifications", customerNotificationRoutes);
 app.use("/api/vehicles", vehicleRoute);
 app.use("/api/delivery/driver", driverRoute);
 app.use("/api/delivery/assignments", deliveryAssignRoute);

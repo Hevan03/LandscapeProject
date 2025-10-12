@@ -8,11 +8,8 @@ let Notification = null;
 
 // Try to import Notification model
 try {
-  Notification = (await import("../../Models/landscape/notificationModel.js"))
-    .default;
-  console.log(
-    "Notification model imported successfully in deliveryAssignController"
-  );
+  Notification = (await import("../../Models/landscape/notificationModel.js")).default;
+  console.log("Notification model imported successfully in deliveryAssignController");
 } catch (error) {
   console.error("Error importing Notification model:", error);
 }
@@ -27,31 +24,21 @@ export const createDeliveryAssignment = async (req, res) => {
     const order = await Order.findById(orderId);
 
     if (!driver || !vehicle || !order) {
-      return res
-        .status(404)
-        .json({ message: "Driver, Vehicle, or Order not found." });
+      return res.status(404).json({ message: "Driver, Vehicle, or Order not found." });
     }
 
-    if (driver.availability !== "Available") {
-      return res
-        .status(400)
-        .json({ message: "Driver is not available for assignment." });
+    if (driver.driveravailability !== "Available") {
+      return res.status(400).json({ message: "Driver is not available for assignment." });
     }
 
     if (vehicle.status !== "Available") {
-      return res
-        .status(400)
-        .json({ message: "Vehicle is not available for assignment." });
+      return res.status(400).json({ message: "Vehicle is not available for assignment." });
     }
 
-    const allowUnpaid =
-      process.env.ALLOW_UNPAID_ASSIGNMENTS === "true" ||
-      req.body.allowUnpaid === true;
+    const allowUnpaid = process.env.ALLOW_UNPAID_ASSIGNMENTS === "true" || req.body.allowUnpaid === true;
     if (!allowUnpaid) {
       if (order.paymentStatus !== "paid" || order.status !== "Paid") {
-        return res
-          .status(400)
-          .json({ message: "Order must be paid before assignment." });
+        return res.status(400).json({ message: "Order must be paid before assignment." });
       }
     }
 
@@ -63,7 +50,7 @@ export const createDeliveryAssignment = async (req, res) => {
     });
     await newAssignment.save();
 
-    await Driver.findByIdAndUpdate(driverId, { availability: "Assigned" });
+    await Driver.findByIdAndUpdate(driverId, { driveravailability: "Assigned" });
     await Vehicle.findByIdAndUpdate(vehicleId, { status: "In Use" });
 
     await Order.findByIdAndUpdate(orderId, {
@@ -78,18 +65,14 @@ export const createDeliveryAssignment = async (req, res) => {
       try {
         await Notification.create({
           type: "delivery_assigned",
+          audience: "customer",
           orderId: orderId,
-          customerId: driverId,
-          message: `New delivery assigned: Order #${orderId
-            .toString()
-            .slice(-6)} - Vehicle: ${vehicle.vehicleNo}`,
+          customerId: order.customerId?.toString?.() || String(order.customerId),
+          message: `Your order #${orderId.toString().slice(-6)} has been scheduled for delivery. Vehicle: ${vehicle.vehicleNo}.`,
         });
         console.log("Delivery assignment notification created successfully");
       } catch (notifError) {
-        console.error(
-          "Error creating delivery assignment notification:",
-          notifError
-        );
+        console.error("Error creating delivery assignment notification:", notifError);
       }
     }
 
@@ -109,24 +92,17 @@ export const createDeliveryAssignment = async (req, res) => {
 // Export delivery assignments as CSV
 export const exportDeliveryAssignmentsCsv = async (req, res) => {
   try {
-    const assignments = await DeliveryAssignment.find()
-      .populate("driverId")
-      .populate("vehicleId")
-      .populate("orderId");
+    const assignments = await DeliveryAssignment.find().populate("driverId").populate("vehicleId").populate("orderId");
 
     const rows = assignments.map((a) => ({
       assignmentId: a._id?.toString() || "",
       orderId: a.orderId?._id?.toString() || "",
       driverName: a.driverId?.name || "",
-      driverContact: a.driverId?.contact || "",
+      driverContact: a.driverId?.phone || "",
       vehicleNo: a.vehicleId?.vehicleNo || "",
       status: a.status || "",
-      assignedDate: a.assignedDate
-        ? new Date(a.assignedDate).toISOString()
-        : "",
-      deliveryAssignedDate: a.orderId?.deliveryAssignedDate
-        ? new Date(a.orderId.deliveryAssignedDate).toISOString()
-        : "",
+      assignedDate: a.assignedDate ? new Date(a.assignedDate).toISOString() : "",
+      deliveryAssignedDate: a.orderId?.deliveryAssignedDate ? new Date(a.orderId.deliveryAssignedDate).toISOString() : "",
       orderStatus: a.orderId?.status || "",
       paymentStatus: a.orderId?.paymentStatus || "",
       totalAmount: a.orderId?.totalAmount ?? "",
@@ -149,16 +125,11 @@ export const exportDeliveryAssignmentsCsv = async (req, res) => {
     const csv = parser.parse(rows);
 
     res.setHeader("Content-Type", "text/csv");
-    res.setHeader(
-      "Content-Disposition",
-      'attachment; filename="delivery-report.csv"'
-    );
+    res.setHeader("Content-Disposition", 'attachment; filename="delivery-report.csv"');
     res.status(200).send(csv);
   } catch (error) {
     console.error("CSV export failed:", error);
-    res
-      .status(500)
-      .json({ message: "Failed to generate report", error: error.message });
+    res.status(500).json({ message: "Failed to generate report", error: error.message });
   }
 };
 
@@ -173,84 +144,110 @@ export const getPendingOrders = async (req, res) => {
     res.status(200).json(pendingOrders);
   } catch (error) {
     console.error("Error fetching pending orders:", error);
-    res
-      .status(500)
-      .json({ message: "Error fetching pending orders", error: error.message });
+    res.status(500).json({ message: "Error fetching pending orders", error: error.message });
   }
 };
 
 // Get all delivery assignments
 export const getAllDeliveryAssignments = async (req, res) => {
   try {
-    const assignments = await DeliveryAssignment.find()
-      .populate("driverId")
-      .populate("vehicleId");
+    const assignments = await DeliveryAssignment.find().populate("driverId").populate("vehicleId").populate("orderId");
     res.status(200).json(assignments);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong.", error: error.message });
+    res.status(500).json({ message: "Something went wrong.", error: error.message });
   }
 };
 
 // Get a delivery assignment by ID
 export const getDeliveryAssignmentById = async (req, res) => {
   try {
-    const assignment = await DeliveryAssignment.findById(req.params.id)
-      .populate("driverId")
-      .populate("vehicleId");
-    if (!assignment)
-      return res
-        .status(404)
-        .json({ message: "Delivery assignment not found." });
+    const assignment = await DeliveryAssignment.findById(req.params.id).populate("driverId").populate("vehicleId");
+    if (!assignment) return res.status(404).json({ message: "Delivery assignment not found." });
     res.status(200).json(assignment);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong.", error: error.message });
+    res.status(500).json({ message: "Something went wrong.", error: error.message });
   }
 };
 
 // Update a delivery assignment
 export const updateDeliveryAssignment = async (req, res) => {
   try {
-    const updatedAssignment = await DeliveryAssignment.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
+    const { status } = req.body;
+    const assignment = await DeliveryAssignment.findById(req.params.id);
+    if (!assignment) return res.status(404).json({ message: "Delivery assignment not found." });
+
+    // Apply updates
+    if (status) assignment.status = status;
+    const updatedAssignment = await assignment.save();
+
+    // Reflect status to related entities
+    try {
+      const order = await Order.findById(updatedAssignment.orderId);
+      if (order) {
+        if (status === "Assigned") {
+          order.status = "Assigned";
+        } else if (status === "In Transit") {
+          order.status = "In Transit";
+        } else if (status === "Delivered") {
+          order.status = "Delivered";
+        }
+        await order.save();
       }
-    );
-    if (!updatedAssignment)
-      return res
-        .status(404)
-        .json({ message: "Delivery assignment not found." });
+
+      // Free up driver and vehicle after delivery is completed
+      if (status === "Delivered") {
+        if (updatedAssignment.driverId) await Driver.findByIdAndUpdate(updatedAssignment.driverId, { driveravailability: "Available" });
+        if (updatedAssignment.vehicleId) await Vehicle.findByIdAndUpdate(updatedAssignment.vehicleId, { status: "Available" });
+      }
+
+      // Send notification to customer on status change
+      if (Notification && order && status) {
+        try {
+          const notifType =
+            status === "Assigned"
+              ? "delivery_assigned"
+              : status === "In Transit"
+              ? "delivery_in_transit"
+              : status === "Delivered"
+              ? "delivery_completed"
+              : "delivery_updated";
+
+          await Notification.create({
+            type: notifType,
+            audience: "customer",
+            orderId: order._id,
+            customerId: order.customerId?.toString?.() || String(order.customerId),
+            message:
+              status === "Assigned"
+                ? `Your order #${order._id.toString().slice(-6)} has been assigned for delivery.`
+                : status === "In Transit"
+                ? `Your order #${order._id.toString().slice(-6)} is now in transit.`
+                : status === "Delivered"
+                ? `Your order #${order._id.toString().slice(-6)} has been delivered.`
+                : `Delivery status for order #${order._id.toString().slice(-6)} updated to ${status}.`,
+          });
+        } catch (nErr) {
+          console.warn("Failed to create delivery status notification:", nErr.message);
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to update related entities for delivery assignment:", e.message);
+    }
+
     res.status(200).json(updatedAssignment);
   } catch (error) {
-    res
-      .status(400)
-      .json({ message: "Invalid data provided.", error: error.message });
+    res.status(400).json({ message: "Invalid data provided.", error: error.message });
   }
 };
 
 // Delete a delivery assignment
 export const deleteDeliveryAssignment = async (req, res) => {
   try {
-    const deletedAssignment = await DeliveryAssignment.findByIdAndDelete(
-      req.params.id
-    );
-    if (!deletedAssignment)
-      return res
-        .status(404)
-        .json({ message: "Delivery assignment not found." });
-    res
-      .status(200)
-      .json({ message: "Delivery assignment deleted successfully." });
+    const deletedAssignment = await DeliveryAssignment.findByIdAndDelete(req.params.id);
+    if (!deletedAssignment) return res.status(404).json({ message: "Delivery assignment not found." });
+    res.status(200).json({ message: "Delivery assignment deleted successfully." });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong.", error: error.message });
+    res.status(500).json({ message: "Something went wrong.", error: error.message });
   }
 };
 
@@ -262,26 +259,22 @@ export const getPaidOrders = async (req, res) => {
       status: "Paid",
       $or: [{ assignedDriver: null }, { assignedDriver: { $exists: false } }],
     };
-    const paidOrders = await Order.find(query).sort({ createdAt: -1 });
+    const paidOrders = await Order.find(query).populate("customerId", "name").sort({ createdAt: -1 });
     res.status(200).json(paidOrders);
   } catch (error) {
     console.error("Error fetching paid orders:", error);
-    res
-      .status(500)
-      .json({ message: "Error fetching paid orders", error: error.message });
+    res.status(500).json({ message: "Error fetching paid orders", error: error.message });
   }
 };
 
 // Get available drivers for assignment
 export const getAvailableDrivers = async (req, res) => {
   try {
-    const availableDrivers = await Driver.find({ availability: "Available" });
+    const availableDrivers = await Driver.find({ driveravailability: "Available" });
     res.status(200).json(availableDrivers);
   } catch (error) {
     console.error("Error fetching available drivers:", error);
-    res
-      .status(500)
-      .json({ message: "Something went wrong.", error: error.message });
+    res.status(500).json({ message: "Something went wrong.", error: error.message });
   }
 };
 
@@ -292,9 +285,7 @@ export const getAvailableVehicles = async (req, res) => {
     res.status(200).json(availableVehicles);
   } catch (error) {
     console.error("Error fetching available vehicles:", error);
-    res
-      .status(500)
-      .json({ message: "Something went wrong.", error: error.message });
+    res.status(500).json({ message: "Something went wrong.", error: error.message });
   }
 };
 
@@ -313,8 +304,6 @@ export const getDriverDeliveries = async (req, res) => {
     res.status(200).json(deliveries);
   } catch (error) {
     console.error("Error fetching driver deliveries:", error);
-    res
-      .status(500)
-      .json({ message: "Something went wrong.", error: error.message });
+    res.status(500).json({ message: "Something went wrong.", error: error.message });
   }
 };

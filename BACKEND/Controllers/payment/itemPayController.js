@@ -18,9 +18,7 @@ export const createItemPayment = async (req, res) => {
     await newPayment.save();
     res.status(201).json(newPayment);
   } catch (error) {
-    res
-      .status(400)
-      .json({ message: "Invalid data provided.", error: error.message });
+    res.status(400).json({ message: "Invalid data provided.", error: error.message });
   }
 };
 
@@ -30,9 +28,7 @@ export const getAllItemPayments = async (req, res) => {
     const payments = await ItemPayment.find();
     res.status(200).json(payments);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong.", error: error.message });
+    res.status(500).json({ message: "Something went wrong.", error: error.message });
   }
 };
 
@@ -40,34 +36,72 @@ export const getAllItemPayments = async (req, res) => {
 export const getItemPaymentById = async (req, res) => {
   try {
     const payment = await ItemPayment.findById(req.params.id);
-    if (!payment)
-      return res.status(404).json({ message: "Item payment not found." });
+    if (!payment) return res.status(404).json({ message: "Item payment not found." });
     res.status(200).json(payment);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong.", error: error.message });
+    res.status(500).json({ message: "Something went wrong.", error: error.message });
   }
 };
 
 // Update an item payment
 export const updateItemPayment = async (req, res) => {
   try {
-    const updatedPayment = await ItemPayment.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
+    const updatedPayment = await ItemPayment.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!updatedPayment) return res.status(404).json({ message: "Item payment not found." });
+
+    // If status is updated, reflect it on the related Order too
+    const { status: newStatus } = req.body;
+    if (newStatus && updatedPayment.orderId) {
+      try {
+        const order = await Order.findById(updatedPayment.orderId);
+        if (order) {
+          if (newStatus === "Completed") {
+            order.paymentStatus = "paid";
+            order.status = "Paid";
+            order.paymentId = updatedPayment._id;
+          } else if (newStatus === "Failed") {
+            order.paymentStatus = "unpaid";
+            // Keep or revert to Pending for delivery flow
+            order.status = "Pending";
+          } else if (newStatus === "Pending") {
+            // In case admin sets back to pending
+            order.paymentStatus = "pending_verification";
+          }
+          await order.save();
+
+          // Notify customer about approval/rejection if Notification model is available
+          if (Notification) {
+            try {
+              const notifType =
+                newStatus === "Completed" ? "payment_approved" : newStatus === "Failed" ? "payment_rejected" : "payment_status_updated";
+              await Notification.create({
+                type: notifType,
+                audience: "customer",
+                orderId: updatedPayment.orderId,
+                customerId: updatedPayment.customerId,
+                message:
+                  newStatus === "Completed"
+                    ? `Your payment for Order #${updatedPayment.orderId.toString().slice(-6)} has been approved.`
+                    : newStatus === "Failed"
+                    ? `Your payment for Order #${updatedPayment.orderId.toString().slice(-6)} was rejected. Please resubmit or contact support.`
+                    : `Payment status for Order #${updatedPayment.orderId.toString().slice(-6)} updated to ${newStatus}.`,
+              });
+            } catch (notifError) {
+              console.warn("Failed to create customer notification:", notifError.message);
+            }
+          }
+        }
+      } catch (orderError) {
+        console.error("Error updating order for item payment:", orderError);
+        // Do not fail the whole request if order update fails; still return payment update
       }
-    );
-    if (!updatedPayment)
-      return res.status(404).json({ message: "Item payment not found." });
+    }
     res.status(200).json(updatedPayment);
   } catch (error) {
-    res
-      .status(400)
-      .json({ message: "Invalid data provided.", error: error.message });
+    res.status(400).json({ message: "Invalid data provided.", error: error.message });
   }
 };
 
@@ -75,21 +109,17 @@ export const updateItemPayment = async (req, res) => {
 export const deleteItemPayment = async (req, res) => {
   try {
     const deletedPayment = await ItemPayment.findByIdAndDelete(req.params.id);
-    if (!deletedPayment)
-      return res.status(404).json({ message: "Item payment not found." });
+    if (!deletedPayment) return res.status(404).json({ message: "Item payment not found." });
     res.status(200).json({ message: "Item payment deleted successfully." });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong.", error: error.message });
+    res.status(500).json({ message: "Something went wrong.", error: error.message });
   }
 };
 
 // Create inventory payment
 export const createInventoryPayment = async (req, res) => {
   try {
-    const { orderId, customerId, amount, method, bankSlipUrl, notes } =
-      req.body;
+    const { orderId, customerId, amount, method, bankSlipUrl, notes } = req.body;
 
     const newPayment = new ItemPayment({
       orderId,
@@ -115,9 +145,7 @@ export const createInventoryPayment = async (req, res) => {
             type: "payment_received",
             orderId,
             customerId,
-            message: `New inventory payment received for Order #${orderId
-              .toString()
-              .slice(-6)} - Amount: LKR ${amount.toLocaleString()}`,
+            message: `New inventory payment received for Order #${orderId.toString().slice(-6)} - Amount: LKR ${amount.toLocaleString()}`,
           });
         } catch (notifError) {
           console.error("Error creating notification:", notifError);
@@ -149,9 +177,7 @@ export const getOrderForPayment = async (req, res) => {
     if (!order) return res.status(404).json({ message: "Order not found" });
     res.status(200).json(order);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching order", error: error.message });
+    res.status(500).json({ message: "Error fetching order", error: error.message });
   }
 };
 
@@ -170,36 +196,23 @@ export const getAllNotifications = async (req, res) => {
 export const markNotificationAsRead = async (req, res) => {
   try {
     const { notificationId } = req.params;
-    const notification = await Notification.findByIdAndUpdate(
-      notificationId,
-      { isRead: true },
-      { new: true }
-    );
-    if (!notification)
-      return res.status(404).json({ message: "Notification not found" });
-    res
-      .status(200)
-      .json({ message: "Notification marked as read", notification });
+    const notification = await Notification.findByIdAndUpdate(notificationId, { isRead: true }, { new: true });
+    if (!notification) return res.status(404).json({ message: "Notification not found" });
+    res.status(200).json({ message: "Notification marked as read", notification });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error updating notification", error: error.message });
+    res.status(500).json({ message: "Error updating notification", error: error.message });
   }
 };
 
 // Create test notification
 export const createTestNotification = async (req, res) => {
   try {
-    if (!Notification)
-      return res
-        .status(500)
-        .json({ message: "Notification model not available" });
+    if (!Notification) return res.status(500).json({ message: "Notification model not available" });
     const testNotification = new Notification({
       type: "payment_received",
       orderId: "test123",
       customerId: "test456",
-      message:
-        "Test notification - Payment received for Order #test123 - Amount: LKR 1,000",
+      message: "Test notification - Payment received for Order #test123 - Amount: LKR 1,000",
     });
     await testNotification.save();
     res.status(201).json({
@@ -217,10 +230,7 @@ export const createTestNotification = async (req, res) => {
 // Test database connection
 export const testDatabaseConnection = async (req, res) => {
   try {
-    if (!Notification)
-      return res
-        .status(500)
-        .json({ message: "Notification model not available" });
+    if (!Notification) return res.status(500).json({ message: "Notification model not available" });
     const count = await Notification.countDocuments();
     res.status(200).json({
       message: "Database connection successful",
@@ -228,8 +238,6 @@ export const testDatabaseConnection = async (req, res) => {
       modelAvailable: true,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Database connection failed", error: error.message });
+    res.status(500).json({ message: "Database connection failed", error: error.message });
   }
 };

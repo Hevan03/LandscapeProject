@@ -19,16 +19,16 @@ const storage = multer.diskStorage({
 // 2. Create a File Filter for Images
 const fileFilter = (req, file, cb) => {
   // Allowed extensions
-  const filetypes = /jpeg|jpg|png|gif/;
+  const filetypes = /jpeg|jpg|png|gif|webp|avif/;
   // Check extension
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
   // Check mime type
-  const mimetype = filetypes.test(file.mimetype);
+  const mimetype = /image\/(jpeg|jpg|png|gif|webp|avif)/.test(file.mimetype);
 
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb(new Error("Error: Images Only!"));
+    cb(new Error("Error: Images Only! (jpeg, jpg, png, gif, webp, avif)"));
   }
 };
 

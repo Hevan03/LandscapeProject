@@ -6,7 +6,17 @@ import Stripe from "stripe";
 import dotenv from "dotenv";
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+let stripe = null;
+if (process.env.STRIPE_SECRET_KEY) {
+  try {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  } catch (e) {
+    console.warn("Stripe init failed:", e.message);
+    stripe = null;
+  }
+} else {
+  console.warn("STRIPE_SECRET_KEY not set - Stripe features disabled");
+}
 
 // Create a new payment
 export const createPayment = async (req, res) => {
@@ -45,11 +55,44 @@ export const getPaymentById = async (req, res) => {
 // Update a payment
 export const updatePayment = async (req, res) => {
   try {
-    const updatedPayment = await Payment.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-    if (!updatedPayment) {
-      return res.status(404).json({ message: "Payment not found." });
+    const { status } = req.body;
+    const payment = await Payment.findById(req.params.id);
+    if (!payment) return res.status(404).json({ message: "Payment not found." });
+
+    // Update status
+    payment.status = status || payment.status;
+    await payment.save();
+
+    // If admin approves or rejects bank slip, update order and notify customer
+    if (status === "completed" || status === "failed" || status === "cancelled") {
+      const order = await Order.findById(payment.orderId);
+      if (order) {
+        if (status === "completed") {
+          order.paymentStatus = "paid";
+          order.status = "Paid";
+        } else {
+          order.paymentStatus = "unpaid";
+        }
+        await order.save();
+      }
+
+      try {
+        await Notification.create({
+          type: status === "completed" ? "payment_approved" : "payment_rejected",
+          audience: "customer",
+          orderId: payment.orderId,
+          customerId: payment.customerId,
+          message:
+            status === "completed"
+              ? `Your payment for Order #${payment.orderId.toString().slice(-6)} has been approved.`
+              : `Your payment for Order #${payment.orderId.toString().slice(-6)} was rejected. Please resubmit or contact support.`,
+        });
+      } catch (e) {
+        console.warn("Failed to create customer payment notification:", e.message);
+      }
     }
-    res.status(200).json(updatedPayment);
+
+    res.status(200).json(payment);
   } catch (error) {
     res.status(400).json({ message: "Invalid data provided.", error: error.message });
   }
@@ -95,6 +138,7 @@ export const createInventoryPayment = async (req, res) => {
     // Create notification for admin
     await Notification.create({
       type: "payment_received",
+      audience: "admin",
       orderId,
       customerId,
       message: `New payment received for Order #${orderId.toString().slice(-6)} - Amount: LKR ${amount.toLocaleString()}`,
@@ -128,7 +172,9 @@ export const getOrderForPayment = async (req, res) => {
 // Get all notifications
 export const getAllNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find().sort({ createdAt: -1 });
+    const audience = req.query.audience;
+    const filter = audience ? { audience } : {};
+    const notifications = await Notification.find(filter).sort({ createdAt: -1 });
     res.status(200).json(notifications);
   } catch (error) {
     res.status(500).json({ message: "Error fetching notifications", error: error.message });
@@ -155,38 +201,35 @@ export const markNotificationAsRead = async (req, res) => {
 export const createPaymentIntent = async (req, res) => {
   try {
     console.log("Request body for payment intent:", req.body);
-    const { amount, orderId, orderType, userId } = req.body;
+    const { amount, orderId, orderType } = req.body;
+    const authUserId = req.user?.id;
 
     // Validate amount
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: "Invalid payment amount" });
     }
 
+    if (!stripe) return res.status(503).json({ message: "Stripe is not configured" });
+
     // Create payment intent with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount), // Convert to cents
       currency: "usd",
-      metadata: {
-        orderId,
-        orderType,
-        userId,
-      },
+      metadata: { orderId, orderType, userId: authUserId || "unknown" },
     });
 
-    //need to save in Payment model
-    const payment = new Payment({
-      customerId: userId,
+    // Save or upsert a pending Payment record keyed by transactionId
+    const pendingData = {
+      customerId: authUserId,
       orderType,
-      orderId: orderId,
+      orderId,
       amount: Math.round(amount),
       method: "Stripe",
-      orderId,
-      orderType,
       status: "pending",
       transactionId: paymentIntent.id,
-    });
+    };
 
-    await payment.save();
+    await Payment.findOneAndUpdate({ transactionId: paymentIntent.id }, pendingData, { upsert: true, new: true, setDefaultsOnInsert: true });
 
     res.status(200).json({
       message: "Payment intent created successfully",
@@ -202,17 +245,23 @@ export const createPaymentIntent = async (req, res) => {
 export const confirmPayment = async (req, res) => {
   try {
     const { paymentIntentId, orderId, orderType, paymentMethod } = req.body;
-
-    // Create payment record
-    const payment = new Payment({
-      amount: 0, // Will be updated from order
-      paymentMethod,
-      userId: req.user.id,
-      orderId,
-      orderType,
-      status: "completed",
-      transactionId: paymentIntentId,
-    });
+    // Find existing pending payment by transactionId or orderId
+    let payment = await Payment.findOne({ transactionId: paymentIntentId });
+    if (!payment) {
+      payment = await Payment.findOne({ orderId, method: paymentMethod, status: "pending" });
+    }
+    if (!payment) {
+      // Fallback: create if not found (shouldn't normally happen)
+      payment = new Payment({
+        amount: 0,
+        method: paymentMethod,
+        customerId: req.user.id,
+        orderId,
+        orderType,
+        status: "pending",
+        transactionId: paymentIntentId,
+      });
+    }
 
     // Update order status based on order type
     if (orderType === "appointment") {
@@ -233,13 +282,26 @@ export const confirmPayment = async (req, res) => {
       }
 
       order.paymentStatus = "paid";
-      order.status = "processing";
-      payment.amount = order.total || 0;
+      order.status = "Paid";
+      payment.amount = order.totalAmount || 0;
 
       await order.save();
     }
 
     await payment.save();
+
+    // Notify admin about received payment
+    try {
+      await Notification.create({
+        type: "payment_received",
+        audience: "admin",
+        orderId,
+        customerId: payment.customerId,
+        message: `New ${paymentMethod} payment received for Order #${orderId.toString().slice(-6)}`,
+      });
+    } catch (e) {
+      console.warn("Failed to create admin payment notification:", e.message);
+    }
 
     res.status(200).json({
       message: "Payment confirmed successfully",
@@ -264,16 +326,20 @@ export const processBankSlip = async (req, res) => {
       return res.status(400).json({ message: "Bank slip is required" });
     }
 
-    // Create payment record with pending status
-    const payment = new Payment({
-      amount: parseFloat(amount),
-      method: "BankSlip",
-      customerId: customerId,
-      orderId,
-      status: "pending",
-      transactionId: referenceNumber,
-      bankSlipUrl: bankSlip,
-    });
+    // Upsert or update existing pending bank slip to avoid duplicates
+    const payment = await Payment.findOneAndUpdate(
+      { orderId, method: "BankSlip", status: "pending" },
+      {
+        amount: parseFloat(amount),
+        method: "BankSlip",
+        customerId: customerId,
+        orderId,
+        status: "pending",
+        transactionId: referenceNumber,
+        bankSlipUrl: bankSlip,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
     // Update order status based on order type
     if (orderType === "appointment") {
@@ -295,6 +361,19 @@ export const processBankSlip = async (req, res) => {
     }
 
     await payment.save();
+
+    // Notify admin that a bank slip is pending verification
+    try {
+      await Notification.create({
+        type: "payment_pending_verification",
+        audience: "admin",
+        orderId,
+        customerId: payment.customerId,
+        message: `Bank slip uploaded for Order #${orderId.toString().slice(-6)} - Pending verification`,
+      });
+    } catch (e) {
+      console.warn("Failed to create admin payment verification notification:", e.message);
+    }
 
     res.status(200).json({
       message: "Bank slip uploaded successfully. Payment is pending verification.",

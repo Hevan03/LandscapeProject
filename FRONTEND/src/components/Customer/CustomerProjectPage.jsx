@@ -13,14 +13,23 @@ const CustomerProjectsPage = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
-  const { user } = useContext(AuthContext);
+  const user = useContext(AuthContext);
+
+  const loggedInCustomerId = user?.user?._id;
+
   const navigate = useNavigate();
   const location = useLocation();
-  const [projectToUpdate, setProjectToUpdate] = useState(null);
+  const statusOptions = [
+    { value: "all", label: "All Projects" },
+    { value: "Advance Payment Pending", label: "Pending Payment" },
+    { value: "In Progress", label: "In Progress" },
+    { value: "Completed", label: "Completed" },
+  ];
 
-  // Get user ID from context, fallback to the example ID
-
-  const loggedInCustomerId = user?.id;
+  const getFilterLabel = (filter) => {
+    const option = statusOptions.find((opt) => opt.value === filter);
+    return option ? option.label : filter;
+  };
   useEffect(() => {
     try {
       if (location.state?.paymentSuccess && location.state?.projectId) {
@@ -28,8 +37,6 @@ const CustomerProjectsPage = () => {
 
         const id = location.state.projectId;
         const status = location.state.projectStatus;
-
-        console.log("Updating project status for ID:", id, "with status:", status);
 
         // Update project status based on previous status
         if (status === "Advance Payment Pending") {
@@ -90,15 +97,15 @@ const CustomerProjectsPage = () => {
         {/* Filter Controls */}
         <div className="max-w-fit mx-auto px-6 lg:px-20 pt-24 mb-8">
           <div className="bg-white rounded-xl shadow-lg p-4 flex overflow-x-auto space-x-2">
-            {["all", "pending", "in-progress", "completed", "cancelled"].map((status) => (
+            {statusOptions.map((option) => (
               <button
-                key={status}
-                onClick={() => setFilter(status)}
+                key={option.value}
+                onClick={() => setFilter(option.value)}
                 className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
-                  filter === status ? "bg-green-600 text-white font-medium" : "hover:bg-green-50 text-gray-600"
+                  filter === option.value ? "bg-green-600 text-white font-medium" : "hover:bg-green-50 text-gray-600"
                 }`}
               >
-                {status === "all" ? "All Projects" : status.charAt(0).toUpperCase() + status.slice(1).replace("-", " ")}
+                {option.label}
               </button>
             ))}
           </div>
@@ -144,7 +151,7 @@ const CustomerProjectsPage = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-100 mb-2">No projects found</h3>
               <p className="text-gray-200 mb-8">
-                {filter === "all" ? "You don't have any landscape projects yet." : `You don't have any ${filter} projects.`}
+                {filter === "all" ? "You don't have any landscape projects yet." : `You don't have any ${getFilterLabel(filter)} projects.`}
               </p>
               <Link
                 to="/book"

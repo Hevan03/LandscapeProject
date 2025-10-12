@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { clearCustomerCart } from "../../api/adminPaymentApi";
 import AuthContext from "../../context/AuthContext";
 
 // Initialize Stripe (replace with your publishable key)
@@ -11,6 +12,8 @@ const stripePromise = loadStripe("pk_test_51SGwqNF4Uqm38X79LtQNoQVJuTlAW2sDmYBNm
 // Card payment form component
 const CardPaymentForm = ({ amount, orderId, orderType, onSuccess }) => {
   const [loading, setLoading] = useState(false);
+  const [billingName, setBillingName] = useState("");
+  const [postalCode, setPostalCode] = useState("");
   const stripe = useStripe();
   const elements = useElements();
 
@@ -24,23 +27,56 @@ const CardPaymentForm = ({ amount, orderId, orderType, onSuccess }) => {
     setLoading(true);
 
     try {
-      // Create payment intent on backend
-      const intentResponse = await fetch("http://localhost:5001/api/payment/create-payment-intent", {
+      // 1) Create payment intent on backend
+      const intentRes = await fetch("http://localhost:5001/api/payment/create-payment-intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ amount, orderId, orderType }),
+      });
+      const intentData = await intentRes.json();
+      if (!intentRes.ok) throw new Error(intentData.message || "Failed to create payment intent");
+
+      // 2) Confirm card payment on client
+      const cardElement = elements.getElement(CardElement);
+      if (!postalCode) {
+        toast.error("Please enter your billing postal/ZIP code");
+        setLoading(false);
+        return;
+      }
+
+      const { error, paymentIntent } = await stripe.confirmCardPayment(intentData.clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: billingName || undefined,
+            address: { postal_code: postalCode || undefined },
+          },
+        },
+      });
+      if (error) throw error;
+
+      // 3) Notify backend to confirm and update order/payment state
+      const confirmRes = await fetch("http://localhost:5001/api/payment/confirm-payment", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
-          amount,
+          paymentIntentId: paymentIntent.id,
           orderId,
           orderType,
-          userId: localStorage.getItem("userId"),
+          paymentMethod: "Stripe",
         }),
       });
+      const confirmData = await confirmRes.json();
+      if (!confirmRes.ok) throw new Error(confirmData.message || "Payment confirmation failed");
 
       toast.success("Payment successful!");
-      if (onSuccess) onSuccess(intentResponse.paymentId || "stripe-success");
+      if (onSuccess) onSuccess(confirmData.paymentId || paymentIntent.id);
     } catch (error) {
       console.error("Payment error:", error);
       toast.error("Payment failed. Please try again.");
@@ -51,6 +87,29 @@ const CardPaymentForm = ({ amount, orderId, orderType, onSuccess }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Name on Card</label>
+          <input
+            type="text"
+            value={billingName}
+            onChange={(e) => setBillingName(e.target.value)}
+            placeholder="Full name"
+            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Billing Postal/ZIP Code</label>
+          <input
+            type="text"
+            value={postalCode}
+            onChange={(e) => setPostalCode(e.target.value)}
+            placeholder="e.g. 12345"
+            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500"
+            required
+          />
+        </div>
+      </div>
       <div className="bg-gray-50 p-4 rounded-lg">
         <label className="block text-sm font-medium text-gray-700 mb-2">Card Details</label>
         <CardElement
@@ -143,7 +202,8 @@ const BankSlipUpload = ({ amount, orderId, orderType, onSuccess }) => {
       formData.append("method", "BankSlip");
       formData.append("bankSlip", file);
       formData.append("notes", notes);
-      formData.append("transactionId", reference + Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000);
+      formData.append("orderType", "order");
+      formData.append("referenceNumber", reference);
 
       const response = await fetch("http://localhost:5001/api/payment/bank-slip", {
         method: "POST",
@@ -311,9 +371,18 @@ const PaymentPortal = () => {
   }, [paymentDetails, navigate]);
 
   // Handle successful payment
-  const handlePaymentSuccess = (id) => {
+  const handlePaymentSuccess = async (id) => {
     setPaymentId(id);
     setPaymentCompleted(true);
+
+    // Clear cart after success if order type is order
+    try {
+      if (paymentDetails.orderType === "order" && customerId) {
+        await clearCustomerCart(customerId);
+      }
+    } catch (e) {
+      console.warn("Failed to clear cart after payment:", e);
+    }
 
     // Redirect after a delay
     setTimeout(() => {

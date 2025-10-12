@@ -22,7 +22,7 @@ export const notificationAPI = {
 };
 
 // Get notifications for admin dashboard
-export const getNotifications = () => API.get("/api/notifications");
+export const getNotifications = () => API.get("/api/notifications", { params: { audience: "admin" } });
 
 // Mark notification as read
 export const markNotificationAsRead = (notificationId) => API.put(`/api/notifications/read/${notificationId}`);

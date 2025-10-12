@@ -1,13 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import imageurl from "../../public/image.jpg";
+import axios from "axios";
 
 const LandingPage = () => {
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
   };
+
+  const [topLandscapers, setTopLandscapers] = useState([]);
+
+  useEffect(() => {
+    // Fetch top-rated landscapers (public endpoint provided by backend)
+    axios
+      .get("http://localhost:5001/api/rating/landscapers/grades")
+      .then((res) => setTopLandscapers(res.data?.landscapers?.slice(0, 3) || []))
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="bg-white">
@@ -128,6 +139,18 @@ const LandingPage = () => {
                     </div>
                   </div>
                 </motion.div>
+
+                {/* Top-rated landscapers preview */}
+                {topLandscapers.length > 0 && (
+                  <div className="mt-6 flex items-center gap-3 text-sm">
+                    <span className="text-gray-600">Top landscapers:</span>
+                    {topLandscapers.map((l) => (
+                      <span key={l.id} className="px-2 py-1 rounded-full bg-green-100 text-green-800 border border-green-200">
+                        {l.name} · Grade {l.grade} · ⭐ {l.rating}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
 
@@ -247,6 +270,116 @@ const LandingPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Top-rated Landscapers */}
+      {topLandscapers?.length > 0 && (
+        <div className="py-20 bg-white">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-800 mb-3">Top-rated Landscapers</h2>
+              <p className="text-gray-600">Browse our best performers based on customer feedback</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {topLandscapers.slice(0, 6).map((l, idx) => {
+                const name = l.name || l.fullName || l.username || "Landscaper";
+                const grade = (l.grade || "-").toString();
+                const rating = Number(l.rating || 0);
+                const totalReviews = l.reviewsCount || l.totalReviews || l.ratingCount || 0;
+                const filled = Math.floor(rating);
+                const hasHalf = rating - filled >= 0.5;
+
+                const gradeColor =
+                  grade === "A"
+                    ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                    : grade === "B"
+                    ? "bg-blue-100 text-blue-800 border-blue-200"
+                    : grade === "C"
+                    ? "bg-amber-100 text-amber-800 border-amber-200"
+                    : "bg-gray-100 text-gray-700 border-gray-200";
+
+                return (
+                  <motion.div
+                    key={l.id || l._id || idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: idx * 0.05 }}
+                    className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition p-6"
+                  >
+                    <div className="flex items-center gap-4 mb-4">
+                      {/* Avatar */}
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white flex items-center justify-center text-xl font-semibold shadow">
+                        {name?.[0]?.toUpperCase() || "L"}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-lg font-semibold text-gray-800 truncate">{name}</h3>
+                          <span className={`text-xs px-2.5 py-1 rounded-full border ${gradeColor}`}>Grade {grade}</span>
+                        </div>
+                        <div className="mt-1 flex items-center gap-2">
+                          {/* Stars */}
+                          <div className="flex items-center text-yellow-400">
+                            {[...Array(5)].map((_, i) => {
+                              const full = i < filled;
+                              const half = i === filled && hasHalf;
+                              return (
+                                <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" className="w-4 h-4 mr-0.5">
+                                  {full ? (
+                                    <path
+                                      fill="currentColor"
+                                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                                    />
+                                  ) : half ? (
+                                    <g>
+                                      <defs>
+                                        <linearGradient id={`half-${idx}-${i}`} x1="0" x2="1">
+                                          <stop offset="50%" stopColor="currentColor" />
+                                          <stop offset="50%" stopColor="transparent" />
+                                        </linearGradient>
+                                      </defs>
+                                      <path
+                                        fill={`url(#half-${idx}-${i})`}
+                                        stroke="currentColor"
+                                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                                      />
+                                    </g>
+                                  ) : (
+                                    <path
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="1.5"
+                                      d="M10 2l2.35 7.23H20l-6.18 4.49 2.36 7.28L10 16.5 3.82 21 6.18 13.72 0 9.23h7.65L10 2z"
+                                    />
+                                  )}
+                                </svg>
+                              );
+                            })}
+                          </div>
+                          <span className="text-sm text-gray-700 font-medium">{rating.toFixed(1)}</span>
+                          {totalReviews > 0 && <span className="text-xs text-gray-500">({totalReviews})</span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Subtext */}
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+                      Experienced landscaper delivering quality work and customer satisfaction.
+                    </p>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">Verified Professional</span>
+                      <Link to={"/ratings"} className="text-sm text-green-700 hover:text-green-800 font-medium">
+                        View reviews →
+                      </Link>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Career Section */}
       <div className="py-20 bg-gradient-to-br from-green-700 to-green-900 text-white">

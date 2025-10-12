@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { createItem, getItemById, updateItem } from "../../api/itemApi";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 const ItemForm = () => {
   const { id } = useParams();
@@ -103,7 +103,6 @@ const ItemForm = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen p-6 bg-gray-50">
-      <Toaster position="top-right" reverseOrder={false} />
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg border border-gray-200">
         <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">{isUpdate ? "Update Item" : "Add New Item"}</h1>
 

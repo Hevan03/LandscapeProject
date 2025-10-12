@@ -25,7 +25,7 @@ export const getAllOrders = async (req, res) => {
 // Create a new order manually
 export const createOrder = async (req, res) => {
   try {
-    const { customerId, items, totalAmount, readyForAssignment = false } = req.body.customerId;
+    const { customerId, items, totalAmount, readyForAssignment = false } = req.body;
     console.log("Creating order with data:", req.body);
 
     if (!customerId || !items || !Array.isArray(items) || items.length === 0 || !totalAmount) {

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 // Import the API functions
-import { getAllInventoryPayments, getAllServicePayments } from "../../../api/adminPaymentApi";
+import { getAllInventoryPayments, getAllServicePayments, updatePaymentStatus } from "../../../api/adminPaymentApi";
 
 const AdminPaymentDashboard = () => {
   const [inventoryPayments, setInventoryPayments] = useState([]);
@@ -78,6 +78,24 @@ const AdminPaymentDashboard = () => {
     setShowModal(true);
   };
 
+  const handleApproveReject = async (status) => {
+    if (!selectedPayment?._id) return;
+    const confirmMsg = status === "completed" ? "Approve this payment?" : "Reject this payment?";
+    if (!window.confirm(confirmMsg)) return;
+    try {
+      await updatePaymentStatus(selectedPayment._id, status);
+      toast.success(status === "completed" ? "Payment approved" : "Payment rejected");
+      setShowModal(false);
+      // Refresh lists
+      const [inventoryRes, serviceRes] = await Promise.all([getAllInventoryPayments(), getAllServicePayments()]);
+      setInventoryPayments(inventoryRes.data);
+      setServicePayments(serviceRes.data);
+    } catch (e) {
+      console.error("Failed to update payment:", e);
+      toast.error("Failed to update payment status");
+    }
+  };
+
   const getStatusBadgeClasses = (status) => {
     switch (status) {
       case "Pending":
@@ -144,8 +162,6 @@ const AdminPaymentDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <Toaster position="top-right" reverseOrder={false} />
-
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-4xl font-extrabold text-gray-800 mb-4">
@@ -474,13 +490,29 @@ const AdminPaymentDashboard = () => {
               </div>
 
               {/* Modal Footer */}
-              <div className="bg-gray-50 px-6 py-4 flex justify-end">
+              <div className="bg-gray-50 px-6 py-4 flex flex-wrap gap-2 justify-end">
                 <button
                   onClick={() => setShowModal(false)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
                 >
                   Close
                 </button>
+                {selectedPayment?.method === "BankSlip" || selectedPayment?.paymentMethod === "BankSlip" || selectedPayment?.type === "Service" ? (
+                  <>
+                    <button
+                      onClick={() => handleApproveReject("completed")}
+                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                    >
+                      Approve Payment
+                    </button>
+                    <button
+                      onClick={() => handleApproveReject("cancelled")}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                    >
+                      Reject Payment
+                    </button>
+                  </>
+                ) : null}
                 <button
                   onClick={() => {
                     toast.success("Invoice downloaded successfully");

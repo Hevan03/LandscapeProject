@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import AuthContext from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 const MachineryDetailModal = ({ machine, onClose }) => {
@@ -7,8 +9,9 @@ const MachineryDetailModal = ({ machine, onClose }) => {
   const [totalPrice, setTotalPrice] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const customerId = "68cd012dfe7ed10e950e0f6b";
+  const navigate = useNavigate();
+  const auth = useContext(AuthContext);
+  const customerId = auth?.user?.id || auth?.user?._id || auth?.user?.customerId;
 
   useEffect(() => {
     // Calculate total price based on quantity and duration
@@ -40,6 +43,13 @@ const MachineryDetailModal = ({ machine, onClose }) => {
 
   const handleProceedToPayment = async () => {
     try {
+      // Require login before creating a rental order
+      if (!customerId) {
+        showErrorMessage("Please log in to continue with payment.");
+        navigate("/login", { state: { from: "/landscaper/rentals" } });
+        return;
+      }
+
       setIsSubmitting(true);
       const response = await fetch("http://localhost:5001/api/rental-orders", {
         method: "POST",
@@ -56,9 +66,18 @@ const MachineryDetailModal = ({ machine, onClose }) => {
       if (!response.ok) throw new Error("Failed to create rental order");
 
       const data = await response.json();
-      // Replace alert with a more modern approach, but keeping functionality
-      showSuccessMessage("Rental order created successfully!");
-      setTimeout(() => onClose(), 1500);
+      const created = data?.order || data; // support either { order } or direct object
+      const orderId = created?._id || created?.id;
+      const total = created?.totalPrice ?? totalPrice;
+
+      if (!orderId) throw new Error("Rental order ID missing in response");
+
+      // Redirect to inventory payment portal with prefilled query immediately
+      navigate(
+        `/payment-management/inventory?orderId=${encodeURIComponent(orderId)}&customerId=${encodeURIComponent(
+          customerId
+        )}&totalAmount=${encodeURIComponent(total)}`
+      );
     } catch (error) {
       showErrorMessage(error.message);
     } finally {

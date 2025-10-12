@@ -6,7 +6,8 @@ export const addMachine = async (req, res) => {
     const { name, category, description, rentalPricePerDay, defaultDurationDays, penaltyPerDay, quantity } = req.body;
 
     // Get the array of image URLs from the uploaded files
-    const imageUrls = req.files.map((file) => `/uploads/${file.filename}`);
+    const files = req.files || [];
+    const imageUrls = files.map((file) => `/uploads/${file.filename}`);
 
     const newMachine = new Machinery({
       name,
@@ -55,6 +56,12 @@ export const getAllMachines = async (req, res) => {
 // Update a machine by ID
 export const updateMachine = async (req, res) => {
   try {
+    // If new images are uploaded, set imageUrl accordingly
+    const files = req.files || [];
+    if (files.length) {
+      req.body.imageUrl = files.map((file) => `/uploads/${file.filename}`);
+    }
+
     const updatedMachine = await Machinery.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,

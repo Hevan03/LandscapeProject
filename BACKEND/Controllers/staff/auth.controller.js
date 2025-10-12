@@ -3,6 +3,7 @@ import User from "../../Models/staff/User.js";
 import staff from "../../Models/staff/Employee_Service.js";
 import Driver from "../../Models/delivery/driverModel.js";
 import Landscaper from "../../Models/landscape/landscaperModel.js";
+import MaintenanceWorker from "../../Models/customer/MaintenanceModel.js";
 import { generateToken } from "../../utils/jwt.js";
 import { hashPassword } from "../../utils/authAndNotify.js";
 import Customer from "../../Models/customer/customerModel.js";
@@ -14,23 +15,28 @@ export const login = async (req, res) => {
 
     let user;
     let role = "user";
-    user = await staff.findOne({ email });
+    user = await staff.findOne({ email: new RegExp(`^${email}$`, "i") });
     if (user) {
       if (user.role === "ManagementEmployee") {
         role = "management";
       } else role = "staff";
     } else {
-      user = await Driver.findOne({ email });
+      user = await Driver.findOne({ email: new RegExp(`^${email}$`, "i") });
       if (user) {
         role = "driver";
       } else {
-        user = await Landscaper.findOne({ email });
+        user = await Landscaper.findOne({ email: new RegExp(`^${email}$`, "i") });
         if (user) {
           role = "landscaper";
         } else {
-          user = await Customer.findOne({ email });
+          user = await MaintenanceWorker.findOne({ email: new RegExp(`^${email}$`, "i") });
           if (user) {
-            role = "customer";
+            role = "maintenance";
+          } else {
+            user = await Customer.findOne({ email: new RegExp(`^${email}$`, "i") });
+            if (user) {
+              role = "customer";
+            }
           }
         }
       }
