@@ -435,7 +435,7 @@ const CustomerHomePage = () => {
                           )}
                         </div>
                         <Link
-                          to="/customer/maintanance"
+                          to={`/customer/maintenance?workerId=${worker._id}`}
                           className="mt-auto block w-full py-2 text-center bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
                         >
                           Hire Now

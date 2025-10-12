@@ -85,7 +85,7 @@ const LandscaperNavbar = () => {
                   <NavItem to="/landscaper/home" icon={<Home size={18} />} label="Home" />
                   <NavItem to="/landscaper/create-landscape" icon={<PlusSquare size={18} />} label="New Project" />
                   <NavItem to="/landscaper/projects" icon={<Briefcase size={18} />} label="My Projects" />
-                  <NavItem to="/shop" icon={<ShoppingBag size={18} />} label="Shop" />
+                  <NavItem to="/landscaper/shop" icon={<ShoppingBag size={18} />} label="Shop" />
                   <NavItem to="/landscaper/appointments" icon={<Calendar size={18} />} label="Appointments" />
                 </ul>
               </nav>

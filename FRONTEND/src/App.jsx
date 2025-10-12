@@ -118,6 +118,7 @@ export const App = () => {
           <Route path="profile" element={<LandscaperProfilePage />} />
           <Route path="create-landscape" element={<CreateLandscapePage />} />
           <Route path="rentals" element={<LandscaperRentalOrders />} />
+          <Route path="shop" element={<ShopDashboard />} />
         </Route>
         {/* customer routers */}
         {/* Driver Routes */}
@@ -145,7 +146,7 @@ export const App = () => {
           path="/customer/maintenance"
           element={
             <CustomerLayout>
-              <CustomerMaintenance />
+              <MaintanancePage />
             </CustomerLayout>
           }
         />
@@ -261,7 +262,6 @@ export const App = () => {
         {/* --- CUSTOMER & GENERAL ROUTES (with general Navbar) --- */}
         <Route path="/customer/progress/:landscapeId" element={<CustomerProgressPage />} />
         <Route path="/customer/my-projects" element={<CustomerProjectsPage />} />
-        <Route path="/customer/maintanance" element={<MaintanancePage />} />
         <Route path="/book/:landscaperId" element={<AppointmentForm />} />
         <Route path="/payment" element={<PaymentPortal />} />
         <Route path="/DeliveryManagement/delivery-reports" element={<DeliveryReports />} />

@@ -72,12 +72,26 @@ const MachineryDetailModal = ({ machine, onClose }) => {
 
       if (!orderId) throw new Error("Rental order ID missing in response");
 
-      // Redirect to inventory payment portal with prefilled query immediately
-      navigate(
-        `/payment-management/inventory?orderId=${encodeURIComponent(orderId)}&customerId=${encodeURIComponent(
-          customerId
-        )}&totalAmount=${encodeURIComponent(total)}`
-      );
+      // Redirect to online payment portal with order details
+      if (auth?.user?.role === "landscaper") {
+        navigate("/paymentportal", {
+          state: {
+            amount: total,
+            orderId,
+            orderType: "rental",
+            returnUrl: "/landscaper/shop",
+          },
+        });
+      } else {
+        navigate("/paymentportal", {
+          state: {
+            amount: total,
+            orderId,
+            orderType: "rental",
+            returnUrl: "/shop",
+          },
+        });
+      }
     } catch (error) {
       showErrorMessage(error.message);
     } finally {
