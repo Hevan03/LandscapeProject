@@ -573,6 +573,7 @@ const AddMachineryForm = ({ onAdd, onCancel }) => {
     category: "",
     description: "",
     rentalPricePerDay: "",
+    penaltyPerDay: "",
     quantity: 1,
   });
   const [files, setFiles] = useState([]);
@@ -596,6 +597,7 @@ const AddMachineryForm = ({ onAdd, onCancel }) => {
       fd.append("category", formData.category);
       fd.append("description", formData.description);
       fd.append("rentalPricePerDay", formData.rentalPricePerDay);
+      fd.append("penaltyPerDay", formData.penaltyPerDay);
       fd.append("quantity", formData.quantity);
       // optional images
       if (files && files.length) {
@@ -689,6 +691,22 @@ const AddMachineryForm = ({ onAdd, onCancel }) => {
         />
       </div>
       <div className="mb-4 text-left">
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="penaltyPerDay">
+          Penalty Per Day
+        </label>
+        <input
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          id="penaltyPerDay"
+          type="number"
+          name="penaltyPerDay"
+          value={formData.penaltyPerDay}
+          onChange={handleChange}
+          min="0"
+          step="0.01"
+          required
+        />
+      </div>
+      <div className="mb-4 text-left">
         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="quantity">
           Quantity
         </label>
@@ -730,6 +748,7 @@ const EditMachineryForm = ({ machine, onUpdate, onCancel }) => {
     category: machine.category || "",
     description: machine.description || "",
     rentalPricePerDay: machine.rentalPricePerDay || "",
+    penaltyPerDay: machine.penaltyPerDay || "",
     quantity: machine.quantity || 1,
   });
   const [files, setFiles] = useState([]);
@@ -753,6 +772,7 @@ const EditMachineryForm = ({ machine, onUpdate, onCancel }) => {
       fd.append("category", formData.category);
       fd.append("description", formData.description);
       fd.append("rentalPricePerDay", formData.rentalPricePerDay);
+      fd.append("penaltyPerDay", formData.penaltyPerDay);
       fd.append("quantity", formData.quantity);
       if (files && files.length) {
         Array.from(files).forEach((file) => fd.append("images", file));
@@ -844,6 +864,24 @@ const EditMachineryForm = ({ machine, onUpdate, onCancel }) => {
           required
         />
       </div>
+
+      <div className="mb-4 text-left">
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="penaltyPerDay">
+          Penalty Per Day
+        </label>
+        <input
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          id="penaltyPerDay"
+          type="number"
+          name="penaltyPerDay"
+          value={formData.penaltyPerDay}
+          onChange={handleChange}
+          min="0"
+          step="0.01"
+          required
+        />
+      </div>
+
       <div className="mb-4 text-left">
         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="quantity">
           Quantity
