@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { getProgressForLandscape } from "../../api/progressApi";
 import ProgressPostCard from "../ProgressPostCard";
 import { PlusCircle } from "lucide-react";
+import LandscaperNavbar from "../LandscaperNavbar"; 
 
 const AddProgressPage = () => {
   // Get the specific landscape project ID from the URL
@@ -34,6 +35,8 @@ const AddProgressPage = () => {
   }, [landscapeId]); // Re-run the fetch if the landscapeId in the URL changes
 
   return (
+    <>
+    <LandscaperNavbar />
     <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8 pt-24">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
@@ -73,6 +76,7 @@ const AddProgressPage = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

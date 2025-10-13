@@ -5,6 +5,7 @@ import { getProgressForCustomer, getProgressForLandscape } from "../../api/progr
 import { useAuth } from "../../context/AuthContext";
 import { Square, CheckSquare, TreePine, HardHat, ChevronLeft, ChevronRight } from "lucide-react";
 
+
 // Custom Arrow Components for the Slider
 const NextArrow = ({ onClick }) => (
   <button

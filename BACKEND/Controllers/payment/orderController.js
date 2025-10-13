@@ -15,13 +15,19 @@ export const getPendingOrders = async (req, res) => {
 // Get all orders
 export const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find().populate("assignedDriver", "username").populate("assignedVehicle", "vehicleNo").sort({ createdAt: -1 });
+    const orders = await Order.find()
+      .populate("customerId", "name email") // ✅ Add this line
+      .populate("assignedDriver", "username")
+      .populate("assignedVehicle", "vehicleNo")
+      .sort({ createdAt: -1 });
+
     res.status(200).json(orders);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to fetch orders" });
   }
 };
+
 
 // Create a new order manually
 export const createOrder = async (req, res) => {

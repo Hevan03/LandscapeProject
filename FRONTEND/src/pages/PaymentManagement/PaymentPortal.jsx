@@ -150,7 +150,7 @@ const CardPaymentForm = ({ amount, orderId, orderType, onSuccess }) => {
             Processing...
           </>
         ) : (
-          `Pay $${amount.toFixed(2)}`
+          `Pay Rs.${amount.toFixed(2)}`
         )}
       </button>
     </form>
@@ -429,7 +429,7 @@ const PaymentPortal = () => {
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="bg-green-700 py-6 px-8">
           <h2 className="text-xl font-bold text-white">Complete Your Payment</h2>
-          <p className="text-green-100 mt-1">Amount: ${paymentDetails.amount.toFixed(2)}</p>
+          <p className="text-green-100 mt-1">Amount: Rs.{paymentDetails.amount.toFixed(2)}</p>
         </div>
 
         <div className="p-8">
