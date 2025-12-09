@@ -1,0 +1,46 @@
+###############################################
+# LANGUAGE DETECTION FIX FOR LANDSCAPEPROJECT
+# Forces GitHub Linguist to correctly detect
+# React (JS/JSX), CSS, HTML, and Backend code
+###############################################
+
+# --- FORCE DETECT THE REAL SOURCE CODE ---
+*.js linguist-detectable=true
+*.jsx linguist-detectable=true
+*.ts linguist-detectable=true
+*.tsx linguist-detectable=true
+*.css linguist-detectable=true
+*.html linguist-detectable=true
+
+# --- IGNORE CONFIG, BUILD, GENERATED FILES ---
+# Vite / Tailwind / PostCSS / ESLint configs
+vite.config.js linguist-generated=true
+tailwind.config.js linguist-generated=true
+postcss.config.js linguist-generated=true
+eslint.config.js linguist-generated=true
+
+# Node dependency tracking files
+package-lock.json linguist-generated=true
+package.json linguist-generated=true
+yarn.lock linguist-generated=true
+pnpm-lock.yaml linguist-generated=true
+
+# Ignore JSON configs & data files
+*.json linguist-data=true
+
+# Ignore static assets (optional)
+*.svg linguist-vendored=true
+*.ico linguist-vendored=true
+
+# Ignore hidden files
+.* linguist-vendored=true
+
+# Ignore node_modules everywhere
+node_modules/** linguist-vendored=true
+
+# Ignore .env files
+*.env linguist-vendored=true
+
+###############################################
+# END OF FILE
+###############################################
