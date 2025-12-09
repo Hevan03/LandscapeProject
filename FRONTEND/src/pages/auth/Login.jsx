@@ -35,7 +35,8 @@ const Login = () => {
       if (loggedUser.role === "maintenance") {
         // persist cookie for compatibility
         if (token) Cookies.set("token", token, { expires: 7 });
-        navigate("/admin/maintanance", { state: { maintenance: loggedUser } });
+        // send maintenance users to their dashboard (not the admin maintenance hires page)
+        navigate("/maintenance/dashboard", { state: { maintenance: loggedUser } });
         return;
       }
 
