@@ -1,4 +1,4 @@
-# LeafSphere — Landscape Project
+# LeafSphere — Landscape Project 🌱
 
 LeafSphere is a full-stack landscaping management platform (React + Vite frontend, Node/Express + Mongoose backend) for designing, booking, tracking and billing landscaping projects, inventory and staff workflows.
 
@@ -15,7 +15,6 @@ LeafSphere is a full-stack landscaping management platform (React + Vite fronten
 - [Key files & symbols](#key-files--symbols)
 - [Generating reports & PDFs](#generating-reports--pdfs)
 - [Contributing](#contributing)
-- [License](#license)
 
 ---
 
@@ -148,9 +147,5 @@ Note: some components assign jsPDF to window for plugin compatibility — see [F
 
 ---
 
-## License
-Specify your license here (e.g., MIT). If none, add a LICENSE file.
-
----
 
 For file-level questions or to add CI / deployment scripts, open the relevant file links above and update accordingly.
